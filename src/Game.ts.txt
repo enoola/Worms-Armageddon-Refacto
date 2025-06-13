@@ -40,8 +40,7 @@ import { Client } from './networking/Client';
 import { Lobby } from './networking/Lobby';
 
 // Utilities
-//import { Utils } from './system/Utils'; // Note: You had a typo in "Utilies.ts"
-import { Logger } from './utils/logger'
+import { Utilities } from './system/Utilities'; // Note: You had a typo in "Utilies.ts"
 
 // Settings & Misc
 import { Settings } from './Settings';

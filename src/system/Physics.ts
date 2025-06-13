@@ -11,7 +11,6 @@
 
 import { Game } from "../Game"
 import { Utils } from "Utils"
-import
 
 // Throws to many errors to use
 //<reference path="../../external/box2dweb-2.1.d.ts" />

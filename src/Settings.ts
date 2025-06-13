@@ -6,13 +6,14 @@
  *  url: http://www.ciaranmccann.me/
  */
 
+import { Logger } from "./utils/logger";
+
 //import { Utils } from "system/Utils"
-import { Logger } from "utils/logger";
+//import { Logger } from "utils/Logger";
 // during var declaration e.g: "export var NAMEOFVAR" I mainly replaced 
 // with Exported mutable settings e.g: "export let NAMEOFVAR"
-//
 
-namespace Settings
+export namespace Settings
 {
 
     //Game vars
@@ -74,16 +75,32 @@ namespace Settings
         return vars;
     }
 
+
     // Applies settings from URL query params
+ 
     export function getSettingsFromUrl(): void {
         const argv = getUrlVars();
 
         // Handle boolean flags
+        /*
         for (const [key, setValue] of Object.entries(BOOLEAN_FLAG_MAPPINGS)) {
             const rawValue = argv[key];
             if (rawValue !== undefined) {
                 const boolValue = rawValue.toLowerCase() === 'true';
                 setValue(boolValue);
+            }
+        }
+        */
+        // some of this 
+        // view: https://chat.qwen.ai/s/6baed45c-fdbd-4291-a7c5-56e63fd9a823?fev=0.0.111
+        for (const key in BOOLEAN_FLAG_MAPPINGS) {
+            if (BOOLEAN_FLAG_MAPPINGS.hasOwnProperty(key)) {
+                const setValue = BOOLEAN_FLAG_MAPPINGS[key];
+                const rawValue = argv[key];
+                if (rawValue !== undefined) {
+                    const boolValue = rawValue.toLowerCase() === 'true';
+                    setValue(boolValue);
+                }
             }
         }
 
@@ -99,7 +116,7 @@ namespace Settings
         }
 
         // Log what was parsed
-        Logger.log("Notice: Settings parsed from URL:", {
+        Logger.log("Notice: Settings parsed from URL:" + {
             physicsDebugDraw: argv["physicsDebugDraw"],
             devMode: argv["devMode"],
             unitTest: argv["unitTest"],

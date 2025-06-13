@@ -423,7 +423,7 @@ namespace Utils
 }
 
 
-
+/*
 module Logger
 {
 
@@ -451,222 +451,19 @@ module Logger
             console.error(message);
     }
 }
+*/
 
+/** 
+moved 
 module TouchUI
 {
-    var isFireHeld = false;
-    var isJumpPressed = false;
-
-    export function isTouchDevice() {
-      return 'ontouchstart' in window || navigator.msMaxTouchPoints;
-
-    };
-
-
-    export function init() 
-    {      
-        if (TouchUI.isTouchDevice())
-        {
-            var fireButtonCssId = "touchFireButton";
-            var jumpButtonCssId = "touchJump";
-            //Using this to also insert the touch contorls for tablets
-            $('body').append("<div class=touchButton id=" + fireButtonCssId + ">Fire</div>");
-            $('body').append("<div class=touchButton id=" + jumpButtonCssId + ">Jump</div>");
-
-            $("#" + fireButtonCssId).bind('touchstart', function (e)
-            {
-                e.preventDefault();
-                isFireHeld = true;
-                Logger.log("touchstarted");
-            });
-
-
-            $("#" + fireButtonCssId).bind("touchend", function (e)
-            {
-                isFireHeld = false;
-                Logger.log("touchend");
-            });
-
-            $("#" + jumpButtonCssId).bind('touchstart', function (e)
-            {
-                e.preventDefault();
-                isJumpPressed = true;
-            });
-
-
-            $("#" + jumpButtonCssId).bind("touchend", function (e)
-            {
-                isJumpPressed = false;
-            });
-        }
-    }
-
-
-    export function isFireButtonDown(reset = false)
-    {
-        if (isFireHeld && reset)
-        {
-            isFireHeld = false;
-            return true;
-        }
-
-        return  isFireHeld;
-    }
-
-    export function isJumpDown(reset = false)
-    {
-         if (isJumpPressed && reset)
-        {
-            isJumpPressed = false;
-            return true;
-        }
-
-        return  isJumpPressed;
-    }
-
-
-
-
+..
 }
+to touchui.ts
+*/
 
-module keyboard
-{
-
-    export var keys = [];
-
-    (function ()
-    {
-
-        $(window).keydown(function (e)
-        {
-            keys[e.which] = true;
-        });
-
-        $(window).keyup(function (e)
-        {          
-            delete keys[e.which];
-        });
-
-    })();
-
-
-    export function isKeyDown(keyCode, actLikeKeyPress = false)
-    {
-        for (var key in keys)
-        {
-            if (key == keyCode)
-            {
-                if (actLikeKeyPress)
-                {
-                    delete keys[key]
-                }
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    export function getKeyName(keycode: number)
-    {
-        for (var i in keyCodes)
-        {
-            if (keyCodes[i] == keycode)
-            {
-                return i;
-            }
-        }
-    }
-
-    export var keyCodes =  {
-    'Backspace': 8,
-    'Tab': 9,
-    'Enter': 13,
-    'Shift': 16,
-    'Ctrl': 17,
-    'Alt': 18,
-    'Pause': 19,
-    'Capslock': 20,
-    'Esc': 27,
-    'Pageup': 33,
-        'Space': 32,
-    'Pagedown': 34,
-    'End': 35,
-    'Home': 36,
-    'Leftarrow': 37,
-    'Uparrow': 38,
-    'Rightarrow': 39,
-    'Downarrow': 40,
-    'Insert': 45,
-    'Delete': 46,
-    '0': 48,
-    '1': 49,
-    '2': 50,
-    '3': 51,
-    '4': 52,
-    '5': 53,
-    '6': 54,
-    '7': 55,
-    '8': 56,
-    '9': 57,
-    'a': 65,
-    'b': 66,
-    'c': 67,
-    'd': 68,
-    'e': 101,
-    'f': 70,
-    'g': 71,
-    'h': 72,
-    'i': 73,
-    'j': 74,
-    'k': 75,
-    'l': 76,
-    'm': 77,
-    'n': 78,
-    'o': 79,
-    'p': 80,
-    'q': 81,
-    'r': 82,
-    's': 83,
-    't': 84,
-    'u': 85,
-    'v': 86,
-    'w': 87,
-    'x': 88,
-    'y': 89,
-    'z': 90,
-    'numpad0': 96,
-    'numpad1': 97,
-    'numpad2': 98,
-    'numpad3': 99,
-    'numpad4': 100,
-    'numpad6': 102,
-    'numpad7': 103,
-    'numpad8': 104,
-    'numpad9': 105,
-    'Multiply': 106,
-    'Plus': 107,
-    'Minut': 109,
-    'Dot': 110,
-    'Slash1': 111,
-    'F1': 112,
-    'F2': 113,
-    'F3': 114,
-    'F4': 115,
-    'F5': 116,
-    'F6': 117,
-    'F7': 118,
-    'F8': 119,
-    'F9': 120,
-    'F10': 121,
-    'F11': 122,
-    'F12': 123,
-    'equal': 187,
-    'Coma': 188,
-    'Slash': 191,
-    'Backslash': 220
-    }
-
-
-}
+/**
+ * moved
+  module keyboard;
+  to keyboard.ts
+  */
