@@ -7,7 +7,10 @@
  */
 
 //import { Utils } from "system/Utils"
-
+import { Logger } from "utils/logger";
+// during var declaration e.g: "export var NAMEOFVAR" I mainly replaced 
+// with Exported mutable settings e.g: "export let NAMEOFVAR"
+//
 
 namespace Settings
 {
@@ -17,7 +20,7 @@ namespace Settings
     export var TURN_TIME_WARING = 5; // after 10 secounds warn player they are running out of time
    
     //General game settings
-    export var SOUND = false;
+    export let SOUND = false;
 
     //Server details
     export var NODE_SERVER_IP = '96.126.111.211'; 
@@ -25,7 +28,7 @@ namespace Settings
     export var NODE_SERVER_PORT = '8080';
 
     // development vars
-    export var DEVELOPMENT_MODE = false; 
+    export let DEVELOPMENT_MODE = false; 
     export var LOG = true;
 
     //When I want to build the manifest file using 
@@ -36,7 +39,7 @@ namespace Settings
 
     export var API_KEY = "AIzaSyA1aZhcIhRQ2gbmyxV5t9pGK47hGsiIO7U";
 
-    export var PHYSICS_DEBUG_MODE = false;
+    export let PHYSICS_DEBUG_MODE = false;
     export var RUN_UNIT_TEST_ONLY = !true;
 
     export var NETWORKED_GAME_QUALITY_LEVELS = {
@@ -48,45 +51,59 @@ namespace Settings
     export var NETWORKED_GAME_QUALITY = NETWORKED_GAME_QUALITY_LEVELS.HIGH;
 
 
-    //Pasers commandline type arguments from the page url like this ?argName=value
-    export function getSettingsFromUrl()
-    {
-        var argv = getUrlVars();
-        var commands = ["physicsDebugDraw","devMode","unitTest","sound"]
+    // Exported mutable settings
 
-        if (argv[commands[0]] == "true")
-        {
-            PHYSICS_DEBUG_MODE = true;
-        }
 
-        if (argv[commands[1]] == "true")
-        {
-            DEVELOPMENT_MODE = true;
-        }
+    // Define known boolean flags and how they map to settings
+    const BOOLEAN_FLAG_MAPPINGS: Record<string, (value: boolean) => void> = {
+        "physicsDebugDraw": (val) => { Settings.PHYSICS_DEBUG_MODE = val; },
+        "devMode": (val) => { Settings.DEVELOPMENT_MODE = val; },
+        "sound": (val) => { Settings.SOUND = val; }
+    };
 
-        if (argv[commands[2]] == "true")
-        {
-           var testWindow = window.open('test.html', '|UnitTests', 'height=1000,width=700,top:100%');
-           testWindow.location.reload(); // This is so if the window was left open it refreshs
-            
-        }
+    // Parses query string into key-value pairs
+    export function getUrlVars(): Record<string, string> {
+        const vars: Record<string, string> = {};
+        const href = window.location.href;
 
-        if (argv[commands[3]] == "false")
-        {
-            SOUND = false;
-        }
+        href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (_, key: string, value: string) => {
+            vars[key] = decodeURIComponent(value.replace(/\+/g, ' '));
+            return '';
+        });
 
-        Logger.log(" Notice: argv are as follows " + commands);
+        return vars;
     }
 
-    export function getUrlVars()
-    {
-        var vars = {};
-        window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) 
-        {
-            vars[key] = value;
-            return true;
+    // Applies settings from URL query params
+    export function getSettingsFromUrl(): void {
+        const argv = getUrlVars();
+
+        // Handle boolean flags
+        for (const [key, setValue] of Object.entries(BOOLEAN_FLAG_MAPPINGS)) {
+            const rawValue = argv[key];
+            if (rawValue !== undefined) {
+                const boolValue = rawValue.toLowerCase() === 'true';
+                setValue(boolValue);
+            }
+        }
+
+        // Special case: unitTest opens a test window
+        if (argv["unitTest"] !== undefined) {
+            const shouldRunTests = argv["unitTest"].toLowerCase() === 'true';
+            if (shouldRunTests) {
+                const testWindow = window.open('test.html', '|UnitTests', 'height=1000,width=700,top=100%');
+                if (testWindow) {
+                    testWindow.location.reload(); // Refresh existing window
+                }
+            }
+        }
+
+        // Log what was parsed
+        Logger.log("Notice: Settings parsed from URL:", {
+            physicsDebugDraw: argv["physicsDebugDraw"],
+            devMode: argv["devMode"],
+            unitTest: argv["unitTest"],
+            sound: argv["sound"]
         });
-        return vars;
     }
 }

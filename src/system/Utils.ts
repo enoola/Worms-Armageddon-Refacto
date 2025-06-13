@@ -133,14 +133,14 @@ namespace Notify
 
 }
 
-module Utilies
+namespace Utils
 {
 
     //Allows for the copying of Object types into their proper types, used for copy constructer
     //for objects that are sent over the network. I have intergrated this function, into
     // the constructor of the Person object so it acts like C-style copy construction
     // WARNING: This creates a deep copy, so reference are not preserved
-    export function copy(newObject, oldObject)
+    /*export function copy(newObject, oldObject)
     {
 
         for (var member in oldObject)
@@ -170,10 +170,55 @@ module Utilies
         }
 
         return newObject;
-    };
+    };*/
+    /**
+ * Recursively copies all properties from source to target.
+ * Mutates the target object.
+ */
+    export function copy<T extends Record<string, any>>(target: T, source: Partial<T>): T {
+        for (const key in source) {
+            if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
 
-    export function sign(x) { return x > 0 ? 1 : x < 0 ? -1 : 0; }
+            const value = source[key];
 
+            if (value === null || value === undefined) {
+                target[key] = value;
+                continue;
+            }
+
+            // Handle Date
+            if (value instanceof Date) {
+                target[key] = new Date(value) as any;
+                continue;
+            }
+
+            // Handle Array
+            if (Array.isArray(value)) {
+                target[key] = ([] as any[]).concat(
+                    value.map(item => (typeof item === "object" ? copy({}, item) : item))
+                ) as any;
+                continue;
+            }
+
+            // Handle Object
+            if (typeof value === "object") {
+                if (!(key in target) || typeof target[key] !== "object" || target[key] === null) {
+                    target[key] = {} as any;
+                }
+                copy(target[key], value);
+                continue;
+            }
+
+            // Primitive values
+            target[key] = value;
+        }
+
+        return target;
+    }
+
+    export function sign(x: number) { return x > 0 ? 1 : x < 0 ? -1 : 0; }
+
+    /*   
     export function findByValue(needle, haystack, haystackProperity, )
     {
 
@@ -186,15 +231,46 @@ module Utilies
         }
         throw "Couldn't find object with proerpty " + haystackProperity + " equal to " + needle;
     }
+    *
+    **
+    * Finds an object in an array by comparing a specific property value.
+    * @throws Error if no match is found
+    */
+    export function findByValue<T extends Record<K, V>, K extends keyof any, V>(
+        needle: V,
+        haystack: T[],
+        haystackProperty: K
+    ): T {
+        const result = haystack.find(item => item[haystackProperty] === needle);
 
-    export function random(min, max)
+        if (!result) {
+            throw new Error(`Couldn't find object with property "${String(haystackProperty)}" equal to ${String(needle)}`);
+        }
+
+        return result;
+    }
+
+    //added types
+    export function random(min: number, max:number )
     {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    /*
     export function pickRandom(collection)
     {
         return collection[random(0, collection.length - 1)];
+    }
+    */
+    /**
+     * Returns a random element from the given array.
+     * Returns undefined if array is empty.
+     */
+    export function pickRandom<T>(array: T[]): T | undefined {
+        if (array.length === 0) return undefined;
+
+        const index = Math.floor(Math.random() * array.length);
+        return array[index];
     }
 
     var pickUnqineCollection = [];
@@ -283,8 +359,8 @@ module Utilies
     //};
 
     
-	export function compress(s){
-		var dict = {};
+	export function compress(s: string){
+        var dict = { CharacterData };
 	    var data = (s + "").split("");
 	    var out = [];
 	    var currChar;
