@@ -25,7 +25,7 @@ declare var BufferLoader: {
     prototype: BufferLoader;
 };
 
-namespace AssetManager
+export namespace AssetManager
 {
     export var numAssetsLoaded: number = 0;
 

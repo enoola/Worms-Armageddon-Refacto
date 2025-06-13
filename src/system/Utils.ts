@@ -16,7 +16,9 @@
  *  url: http://www.ciaranmccann.me/
  */
 import { Settings } from "../Settings"
-import { Physics } from "Physics"
+import { Physics } from "./Physics"
+import { Logger } from "../utils/logger"
+import { AssetManager } from "./AssetManager"
 
 //declare var $;
 //Declare jQuery type - safe global(optional, if still using jQuery)
@@ -49,92 +51,7 @@ export function formatString(template: string, ...args: string[]): string {
 }
 
 
-
-
-namespace Notify
-{
-    export var locked = false;
-    export var levels = {
-        sucess: "alert-success",
-        warn: "alert-warn",
-        error: "alert-error"
-    };
-
-    export function display(header: string, message: string, autoHideTime = 2800, cssStyle = Notify.levels.sucess,doNotOverWrite = false)
-    {
-        if (!locked)
-        {
-            locked = doNotOverWrite;
-            $("#notifaction").removeClass(levels.warn);
-            $("#notifaction").removeClass(levels.error);
-            $("#notifaction").removeClass(levels.sucess);
-            $("#notifaction").addClass(cssStyle);
-
-            $("#notifaction strong").empty();
-            $("#notifaction strong").html(header);
-
-            $("#notifaction p").empty();
-            $("#notifaction p").html(message);
-
-            $("#notifaction").animate({
-                top:  (parseInt($("#notifaction").css("height"))) +"px"
-            }, 400, function ()
-            {
-                if (autoHideTime > 0)
-                {
-                    setTimeout(hide, autoHideTime);
-                }
-            });
-
-
-        }
-
-
-    }
-
-    /*
-    export function hide(callback)
-    {
-        if (!locked)
-        {
-            $("#notifaction").animate({
-                top: (-parseInt($("#notifaction").css("height"))) - 100 + "px"
-            }, 400, function () => {
-                locked = false;
-                if (callback: any != null)
-                {
-                    callback();
-                }
-            });
-        }
-    }
-    */
-
-    
-    export function hide(callback?: () => void): void {
-        const $notification = $("#notification");
-
-        if (!locked) {
-            const height = parseInt($notification.css("height"), 10);
-            locked = true;
-
-            $notification.animate(
-                { top: -height - 100 + "px" },
-                400,
-                () => {
-                    locked = false;
-                    if (callback) {
-                        callback();
-                    }
-                }
-            );
-        }
-    }
-
-}
-
-namespace Utils
-{
+export namespace Utils {
 
     //Allows for the copying of Object types into their proper types, used for copy constructer
     //for objects that are sent over the network. I have intergrated this function, into
@@ -171,23 +88,33 @@ namespace Utils
 
         return newObject;
     };*/
+
     /**
- * Recursively copies all properties from source to target.
- * Mutates the target object.
- */
-    export function copy<T extends Record<string, any>>(target: T, source: Partial<T>): T {
+    * Recursively copies all properties from source to target.
+    * Mutates the target object.
+    */
+    function isDate(value: any): value is Date {
+        return value instanceof Date;
+    }
+    
+    /**
+    * @function copy copies all properties from source to target.
+    * Mutates the target object.
+    */
+        export function copy<T extends Record<string, any>>(target: T, source: Partial<T>): T {
         for (const key in source) {
             if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
 
             const value = source[key];
 
             if (value === null || value === undefined) {
-                target[key] = value;
+                (target[key] as any) = value;
                 continue;
             }
 
             // Handle Date
-            if (value instanceof Date) {
+            
+            if (isDate(value)) {
                 target[key] = new Date(value) as any;
                 continue;
             }
@@ -251,8 +178,7 @@ namespace Utils
     }
 
     //added types
-    export function random(min: number, max:number )
-    {
+    export function random(min: number, max: number) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
@@ -273,15 +199,15 @@ namespace Utils
         return array[index];
     }
 
-    var pickUnqineCollection = [];
-    export function pickUnqine(collection, stringId: string)
-    {
-        if (pickUnqineCollection[stringId])
-        {
-            var items = pickUnqineCollection[stringId];
+    /**
+     * replace the below
+     *
+    var pickUniqueCollection = [];
+    export function pickUnqine(collection, stringId: string) {
+        if (pickUniqueCollection[stringId]) {
+            var items = pickUniqueCollection[stringId];
 
-            if (items.length <= 0)
-            {
+            if (items.length <= 0) {
                 Logger.error("Out of unqine items in collection " + stringId);
                 return;
             }
@@ -291,20 +217,44 @@ namespace Utils
             deleteFromCollection(items, index);
             return unqineItem;
 
-        } else
-        {
-            pickUnqineCollection[stringId] = collection;
+        } else {
+            pickUniqueCollection[stringId] = collection;
             return pickUnqine(collection, stringId);
         }
     }
+    */
+
+    // Assuming T is the type of elements in the collection
+    const pickUniqueCollection: Record<string, any[]> = {};
+
+    export function pickUnique<T>(collection: T[], stringId: string): T | undefined {
+        let items = pickUniqueCollection[stringId];
+
+        if (!items) {
+            // First time: store the collection
+            pickUniqueCollection[stringId] = [...collection]; // copy to avoid mutating original
+            items = pickUniqueCollection[stringId];
+        }
+
+        if (items.length <= 0) {
+            Logger.error("Out of unique items in collection: " + stringId);
+            return undefined;
+        }
+
+        const index = Math.floor(Math.random() * items.length);
+        const item = items[index];
+
+        // Remove item at index
+        items.splice(index, 1);
+
+        return item;
+    }
 
 
-    export function pickRandomSound(collection: string[])
-    {
+    export function pickRandomSound(collection: string[]) {
         var sound: Sound = AssetManager.getSound(collection[random(0, collection.length - 1)]);
 
-        if (!sound.play)
-        {
+        if (!sound.play) {
             Logger.warn(" Somthing looks dogoy with the sound object " + sound);
         }
 
@@ -312,37 +262,49 @@ namespace Utils
     }
 
 
-    export function deleteFromCollection(collection, indexToRemove)
-    {
-        delete collection[indexToRemove];
-        collection.splice(indexToRemove, 1);
+    /**
+     * 
+     * need refacto
+        export function deleteFromCollection(collection, indexToRemove) {
+            delete collection[indexToRemove];
+            collection.splice(indexToRemove, 1);
+        }
+     *
+     /
+    /** Removes an item at the specified index from the array. */
+    export function deleteFromCollection<T>(collection: T[], indexToRemove: number): void {
+        if (indexToRemove >= 0 && indexToRemove < collection.length) {
+            collection.splice(indexToRemove, 1);
+        }
     }
 
-    export function isBetweenRange(value, rangeMax, rangeMin)
-    {
-        return value >= rangeMin && value <= rangeMax;
+    /** Checks if a value is between min and max (inclusive). */
+    export function isBetweenRange(value: number, min: number, max: number): boolean {
+        return value >= min && value <= max;
     }
 
-    export function angleToVector(angle: number)
-    {
-        return new b2Vec2(Math.cos(angle), Math.sin(angle));
+    /** Converts an angle in radians to a 2D vector. */
+    export function angleToVector(angle: number): { x: number; y: number } {
+        return {
+            x: Math.cos(angle),
+            y: Math.sin(angle)
+        };
     }
 
-    export function vectorToAngle(vector)
-    {
+    /** Converts a 2D vector to an angle in radians. */
+    export function vectorToAngle(vector: { x: number; y: number }): number {
         return Math.atan2(vector.y, vector.x);
     }
 
-    export function toRadians(angleInDegrees: number)
-    {
+    /** Converts degrees to radians. */
+    export function toRadians(angleInDegrees: number): number {
         return angleInDegrees * (Math.PI / 180);
     }
 
-    export function toDegrees(angleInRdains: number)
-    {
-        return angleInRdains * (180 / Math.PI);
+    /** Converts radians to degrees. */
+    export function toDegrees(angleInRadians: number): number {
+        return angleInRadians * (180 / Math.PI);
     }
-
     //export function isBetweenRangeTest()
     //{
     //    var t1 = isBetweenRange(3.3, 10, -10);
@@ -358,70 +320,66 @@ namespace Utils
     //    }
     //};
 
-    
-	export function compress(s: string){
-        var dict = { CharacterData };
-	    var data = (s + "").split("");
-	    var out = [];
-	    var currChar;
-	    var phrase = data[0];
-	    var code = 256;
-	    for (var i=1; i<data.length; i++) {
-	        currChar=data[i];
-	        if (dict[phrase + currChar] != null) {
-	            phrase += currChar;
-	        }
-	        else {
-	            out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
-	            dict[phrase + currChar] = code;
-	            code++;
-	            phrase=currChar;
-	        }
-	    }
-	    out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
-	    for (var i=0; i<out.length; i++) {
-	        out[i] = String.fromCharCode(out[i]);
-	    }
-	    return out.join("");
-	}
 
-	export function decompress(s)
-	{
+    // Assuming CharacterData is a class or constructor (adjust accordingly)
+    interface CharacterData {
+        // define structure if needed
+    }
 
-	    var dict = {};
-	    var data = (s + "").split("");
-	    var currChar = data[0];
-	    var oldPhrase = currChar;
-	    var out = [currChar];
-	    var code = 256;
-	    var phrase;
-	    for (var i = 1; i < data.length; i++)
-	    {
-	        var currCode = data[i].charCodeAt(0);
-	        if (currCode < 256)
-	        {
-	            phrase = data[i];
-	        }
-	        else
-	        {
-	            phrase = dict[currCode] ? dict[currCode] : (oldPhrase + currChar);
-	        }
-	        out.push(phrase);
-	        currChar = phrase.charAt(0);
-	        dict[code] = oldPhrase + currChar;
-	        code++;
-	        oldPhrase = phrase;
-	    }
-	    return out.join("");
+    declare const CharacterData: {
+        new(): CharacterData;
+        prototype: CharacterData;
+    };
 
-	}
+    export function compress(s: string): string {
+        const dict: { [key: string]: number } = { CharacterData: 255 }; // initial special token
+        const data = s.split("");
+        const out: number[] = [];
+        let phrase = data[0];
+        let code = 256;
 
-    export function isNumber(n) {
+        for (let i = 1; i < data.length; i++) {
+            const currChar = data[i];
+
+            if (dict[phrase + currChar] !== undefined) {
+                phrase += currChar;
+            } else {
+                // Push char code if single character, otherwise dictionary value
+                out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
+                dict[phrase + currChar] = code;
+                code++;
+                phrase = currChar;
+            }
+        }
+
+        out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0));
+
+        // Convert numbers to characters
+        const compressed = out.map(c => String.fromCharCode(c)).join("");
+
+        return compressed;
+    }
+
+    export function isNumber(n: any) {
         return !isNaN(parseFloat(n)) && isFinite(n);
     }
 
 }
 
+
+
+/**
+ * 
+ * @comment 
+    module Notify
+    {
+        export var locked = false;
+        export var levels = {
+            sucess: "alert-success",
+            warn: "alert-warn",
+    ...
+    }
+    move to notify.ts
 
 /*
 module Logger

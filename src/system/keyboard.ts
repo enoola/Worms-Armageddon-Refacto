@@ -3,7 +3,6 @@
  * @description Utility functions picked from utils.ts file and refactored with qwen
  * @author qwenola
  * @version 1.0.0
-
  */
 export namespace keyboard {
     /**
