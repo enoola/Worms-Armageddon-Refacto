@@ -1,4 +1,4 @@
-class Map
+export class Map
 {
     private mapDef;
     private currentSpawn;
@@ -30,7 +30,7 @@ class Map
     }
 }
 
-module Maps
+export namespace Maps
 {
     export var priates = {
         smallImage: "smalllevel2",

@@ -3,10 +3,11 @@
  * LobbyMenu.js
  *
  *  License: Apache 2.0
- *  author:  Ciarán McCann
+ *  author:  Ciarï¿½n McCann
  *  url: http://www.ciaranmccann.me/
  */
-///<reference path="../Game.ts"/>
+import { Game } from "../Game"
+import { Lobby } from ""
 ///<reference path="../networking/Lobby.ts"/>
 ///<reference path="../networking/LeaderBoard/GooglePLus.ts"/>
 ///<reference path="LeaderBoardView.ts"/>

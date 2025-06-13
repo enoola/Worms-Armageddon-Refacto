@@ -19,7 +19,7 @@ import { Settings } from "../Settings"
 import { Physics } from "./Physics"
 import { Logger } from "../utils/logger"
 import { AssetManager } from "./AssetManager"
-
+import { Sound } from "./"
 //declare var $;
 //Declare jQuery type - safe global(optional, if still using jQuery)
 declare const $: any;

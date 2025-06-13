@@ -1,0 +1,65 @@
+// box2d-types.d.ts
+
+declare namespace Box2D {
+    namespace Common {
+        namespace Math {
+            class b2Vec2 {
+                x: number;
+                y: number;
+                constructor(x?: number, y?: number);
+                Clone(): b2Vec2;
+                Set(x: number, y: number): void;
+                SelfAdd(v: b2Vec2): b2Vec2;
+                Subtract(v: b2Vec2): b2Vec2;
+                Length(): number;
+            }
+        }
+    }
+
+    namespace Dynamics {
+        class b2BodyDef { }
+        class b2Body { }
+        class b2FixtureDef { }
+        class b2Fixture { }
+        class b2World { }
+        class b2DebugDraw { }
+    }
+
+    namespace Collision {
+        class b2AABB { }
+        class b2ContactListener { }
+        class b2RayCastInput { }
+        class b2RayCastOutput { }
+    }
+
+    namespace Collision {
+        namespace Shapes {
+            class b2Shape { }
+            class b2PolygonShape { }
+            class b2CircleShape { }
+        }
+    }
+
+    namespace Dynamics {
+        namespace Joints {
+            class b2DistanceJointDef { }
+            class b2RevoluteJointDef { }
+            class b2RevoluteJoint { }
+        }
+    }
+
+    namespace Collision {
+        class b2SimplexVertex { }
+        class b2WorldManifold { }
+    }
+}
+
+// Then declare the types globally for easy access
+declare type b2Vec2 = Box2D.Common.Math.b2Vec2;
+declare type b2BodyDef = Box2D.Dynamics.b2BodyDef;
+declare type b2Body = Box2D.Dynamics.b2Body;
+declare type b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
+declare type b2Fixture = Box2D.Dynamics.b2Fixture;
+declare type b2World = Box2D.Dynamics.b2World;
+declare type b2AABB = Box2D.Collision.b2AABB;
+// ... add more as needed

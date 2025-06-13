@@ -1,22 +1,40 @@
-import { Physics } from "./system/Physics";
-import { Team } from "./Team";
-import { Worm } from "./Worm";
+// main.ts
 
-const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
-const ctx = canvas.getContext("2d")!;
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+import { Settings } from './Settings';
+import { Graphics } from './system/Graphics';
+import { StartMenu } from './gui/StartMenu';
+import { Game } from './Game';
 
-Physics.initWorld();
+let GameInstance: Game;
 
-const team = new Team("Red", "#ff0000");
-const worm = new Worm(team, 100, 100);
+$(document).ready(() => {
+    Settings.getSettingsFromUrl();
 
-function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    worm.update();
-    worm.draw(ctx);
-    requestAnimationFrame(gameLoop);
-}
+    if (!Settings.RUN_UNIT_TEST_ONLY) {
+        const startMenu = new StartMenu();
+        GameInstance = new Game();
+        AssetManager.loadAssets();
 
-gameLoop();
+        startMenu.onGameReady(() => {
+            startMenu.hide();
+
+            if (!GameInstance.state.isStarted) {
+                GameInstance.start();
+            }
+
+            function gameloop() {
+                if (Settings.DEVELOPMENT_MODE) {
+                    Graphics.stats?.update(); // Optional chaining in case stats is null
+                }
+
+                GameInstance.step();
+                GameInstance.update();
+                GameInstance.draw();
+
+                window.requestAnimationFrame(gameloop);
+            }
+
+            gameloop();
+        });
+    }
+});

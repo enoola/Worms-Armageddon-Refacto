@@ -1,5 +1,5 @@
 import { SpriteDefinition } from "./SpriteDefinitions";
-import { AssetManager } from "./system/AssetManager";
+import { AssetManager } from "../system/AssetManager";
 
 export class Sprite {
     spriteDef!: SpriteDefinition;

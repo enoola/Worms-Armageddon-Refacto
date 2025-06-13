@@ -8,7 +8,8 @@
  *  url: http://www.ciaranmccann.me/
  */
 
-import { Stats } from 'stats.js'
+//import { Stats } from 'stats.js'
+import { Stats } from 'stats.js';
 import { Settings } from '../Settings';
 // Stats is a global variable; you may need to install/import it separately
 declare var stats: any;
@@ -35,10 +36,8 @@ class PreRenderer {
         let ctx: CanvasRenderingContext2D;
 
         if (canvas) {
-            const context = canvas.getContext('2d');
-            if (!context) 
-                throw new Error("Could not get canvas context");
-            ctx = context
+            ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error("Could not get canvas context");
         } else {
             ctx = this.createPreRenderCanvas(width, height);
         }
@@ -86,7 +85,7 @@ export namespace Graphics {
                 (window as any).webkitRequestAnimationFrame ||
                 (window as any).mozRequestAnimationFrame ||
                 (window as any).oRequestAnimationFrame ||
-                window.requestAnimationFrame ||
+                window.msRequestAnimationFrame ||
                 function (callback: FrameRequestCallback): number {
                     window.setTimeout(callback, 1000 / 60);
                     return 1;

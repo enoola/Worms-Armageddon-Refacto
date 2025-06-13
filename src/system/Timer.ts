@@ -1,84 +1,83 @@
 /**
- * Timer.js
- * Handy Timer class, as I use timelapses alot thoughout
- * the codebase and window.SetTimeOut() isn't as fexible as I would like
- *
- *  License: Apache 2.0
- *  author:  Ciarán McCann
- *  url: http://www.ciaranmccann.me/
+ * Timer.ts
+ * A flexible and reusable Timer class for managing time intervals,
+ * with support for pausing, resetting, and checking elapsed time.
  */
-class Timer
-{
-    timeSinceLastUpdate;
-    delta;
-    timePeriod;
-    isTimerPaused;
-    accumulatedTime: number;
+export class Timer {
+    private timeSinceLastUpdate: number;
+    private delta: number;
+    private readonly timePeriod: number;
+    private isTimerPaused: boolean;
+    private accumulatedTime: number;
 
-    constructor (timePeriod)
-    {
+    constructor(timePeriodMs: number) {
+        this.timePeriod = timePeriodMs;
         this.delta = 0;
-        this.timePeriod = timePeriod;
         this.timeSinceLastUpdate = this.getTimeNow();
         this.isTimerPaused = false;
         this.accumulatedTime = 0;
     }
 
-    pause()
-    {
+    pause(): void {
         this.isTimerPaused = true;
     }
 
-    hasTimePeriodPassed(rest = true)
-    {
-        if (this.delta > this.timePeriod)
-        {
-            if(rest)
-            this.delta = 0;
+    resume(): void {
+        this.isTimerPaused = false;
+        this.timeSinceLastUpdate = this.getTimeNow();
+    }
 
+    /**
+     * Checks if the timer has passed its time period.
+     * Optionally resets the timer upon success.
+     * @param reset Automatically reset the timer if time has passed.
+     * @returns True if time has passed, false otherwise.
+     */
+    hasTimePeriodPassed(reset: boolean = true): boolean {
+        if (!this.isTimerPaused && this.delta >= this.timePeriod) {
+            if (reset) this.reset();
             return true;
-        } else
-        {
-            return false;
+        }
+        return false;
+    }
+
+    /**
+     * Updates the timer. Call this in your game loop or update cycle.
+     */
+    update(): void {
+        if (!this.isTimerPaused) {
+            const now = this.getTimeNow();
+            const elapsed = now - this.timeSinceLastUpdate;
+            this.delta += elapsed;
+            this.accumulatedTime += elapsed;
+            this.timeSinceLastUpdate = now;
         }
     }
 
-    reset()
-    {
+    reset(): void {
         this.delta = 0;
+        this.accumulatedTime = 0;
         this.timeSinceLastUpdate = this.getTimeNow();
         this.isTimerPaused = false;
-        this.accumulatedTime = 0;
     }
 
-    getAccumulatedTime()
-    {
+    getAccumulatedTime(): number {
         return this.accumulatedTime;
     }
 
-    getTimeLeft()
-    {
-        return this.timePeriod - this.delta;
+    getTimeLeft(): number {
+        return Math.max(0, this.timePeriod - this.delta);
     }
 
-    getTimeLeftInSec()
-    {
-        return (this.timePeriod - this.delta) / 60;
+    getTimeLeftInSeconds(): number {
+        return this.getTimeLeft() / 1000;
     }
-    
-    getTimeNow()
-    {
+
+    getTimeNow(): number {
         return Date.now();
     }
 
-    update()
-    {
-        if (this.isTimerPaused == false)
-        {
-            this.delta += this.getTimeNow() - this.timeSinceLastUpdate;
-            this.timeSinceLastUpdate = this.getTimeNow();
-            this.accumulatedTime += this.delta;
-
-        }
+    isPaused(): boolean {
+        return this.isTimerPaused;
     }
 }

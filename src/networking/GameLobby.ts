@@ -4,102 +4,89 @@
  * GameLobby.js
  *
  *  License: Apache 2.0
- *  author:  Ciarán McCann
+ *  author:  Ciarï¿½n McCann
  *  url: http://www.ciaranmccann.me/
  */
 
-///<reference path="../Game.ts"/>
-///<reference path="ServerUtilies.ts"/>
+// GameLobby.ts
 
-// Had to give up the benfits of types in this instance, as a problem with the way ES6/Typescript module system
-// works with Node.js modules. http://stackoverflow.com/questions/13444064/typescript-conditional-module-import-export
-//declare function require(s);
+import { Events } from './Events';
+import { ServerUtilities } from './ServerUtilities';
+import { Maps } from '../data/Maps'; // Adjust path as needed
+import { Game } from '../Game';
+import { Player } from '../entities/Player'; // Example
+import { Notify } from '../gui/Notify';
+import { Logger } from '../system/Logger';
+import { Utilies } from '../system/Utils';
 
-try
-{
-//This is some mega hacky stuff, but its the only way I can get around a very strange typescript static anaylse error which
-// prevents the project from compling.
-    eval(" var Events = require('./Events');var ServerUtilies = require('./ServerUtilies');var Util = require('util');var ServerSettings = require('./ServerSettings');");
-
-} catch (error) { }
-
-var SOCKET_STORAGE_GAMELOBBY_ID = 'gameLobbyId';
-
-class GameLobby
-{
+export class GameLobby {
     static LOBBY_STATS = {
-        WATTING_FOR_PLAYERS: 0,
+        WAITING_FOR_PLAYERS: 0,
         GAME_IN_PLAY: 1
-    }
+    };
 
-    private playerIds: string[];
-    name: string;
-    id: string;
-    gameLobbyCapacity: number;
-
-    status: number;
-
-    mapName;
-    currentPlayerId: string;
+    private playerIds: string[] = [];
+    public name: string;
+    public id: string;
+    public mapName: string;
+    public gameLobbyCapacity: number;
+    public status: number;
+    public currentPlayerId: string;
 
     static gameLobbiesCounter = 0;
 
-    constructor(name: string, numberOfPlayers: number, mapName : string  = "priates" )
-    {
+    constructor(name: string, numberOfPlayers: number, mapName: string = 'pirates') {
         this.name = name;
         this.mapName = mapName;
-        this.playerIds = [];
         this.gameLobbyCapacity = numberOfPlayers;
-        this.currentPlayerId = "";
-        this.status = GameLobby.LOBBY_STATS.WATTING_FOR_PLAYERS;
+        this.currentPlayerId = '';
+        this.status = GameLobby.LOBBY_STATS.WAITING_FOR_PLAYERS;
     }
 
-    getNumberOfPlayers()
-    {
+    getNumberOfPlayers(): number {
         return this.gameLobbyCapacity;
     }
 
-    getPlayerSlots(){
+    getPlayerSlots(): number {
         return this.playerIds.length;
     }
 
-    server_init()
-    {
-        this.id = ServerUtilies.createToken() + GameLobby.gameLobbiesCounter;
+    server_init(): void {
+        this.id = ServerUtilities.createToken() + GameLobby.gameLobbiesCounter;
         GameLobby.gameLobbiesCounter++;
     }
 
-    client_init()
-    {
-        //Have the host client setup all the player objects with all the other clients ids
-        Client.socket.on(Events.gameLobby.START_GAME_HOST, function (data) =>
-        {
-            var gameLobby = (Utilies.copy(new GameLobby(null, null), data));
+    client_init(socket: any): void {
+        const Client = {
+            socket: socket
+        };
+
+        // Start game (host)
+        Client.socket.on(Events.gameLobby.START_GAME_HOST, (data) => {
+            const gameLobby = Utilies.copy(new GameLobby(null, null), data);
             Game.map = new Map(Maps[gameLobby.mapName]);
-            
-            //Update local copy of the lobby
+
+            // Update local copy of the lobby
             GameInstance.lobby.client_GameLobby = gameLobby;
-            //Pass player ids to init the game
+
+            // Start game with player IDs
             GameInstance.start(gameLobby.playerIds);
 
-            //Once we have init the game, we most send all the game info to the other players
-            Client.socket.emit(Events.gameLobby.START_GAME_FOR_OTHER_CLIENTS, { "lobby": gameLobby, "gameData": GameInstance.getGameNetData() });
-
+            // Emit start event to other clients
+            Client.socket.emit(Events.gameLobby.START_GAME_FOR_OTHER_CLIENTS, {
+                lobby: gameLobby,
+                gameData: GameInstance.getGameNetData()
+            });
         });
 
-        // Start the game for all other playrs by passing the player information create
-        // by the host client to them.
-        Client.socket.on(Events.gameLobby.START_GAME_FOR_OTHER_CLIENTS, function (data) =>
-        {
-             var gameLobby = (Utilies.copy(new GameLobby(null, null), data.lobby));          
-             Game.map = new Map(Maps[gameLobby.mapName]);
+        // Start game for other clients
+        Client.socket.on(Events.gameLobby.START_GAME_FOR_OTHER_CLIENTS, (data) => {
+            const gameLobby = Utilies.copy(new GameLobby(null, null), data.lobby);
+            Game.map = new Map(Maps[gameLobby.mapName]);
 
-             //Update local copy of the lobby
             GameInstance.lobby.client_GameLobby = gameLobby;
 
-            //Just popluate the array with some players, we will override them with proper data now
-            for (var i = 0; i <  gameLobby.playerIds.length ; i++)
-            {
+            for (let i = 0; i < gameLobby.playerIds.length; i++) {
                 GameInstance.players.push(new Player(gameLobby.playerIds[i]));
             }
 
@@ -107,112 +94,73 @@ class GameLobby
             GameInstance.start();
         });
 
-        Client.socket.on(Events.gameLobby.PLAYER_DISCONNECTED, function (playerId)
-        {
-            Logger.log("Events.gameLobby.PLAYER_DISCONNECTED " + playerId);
+        // Handle player disconnect
+        Client.socket.on(Events.gameLobby.PLAYER_DISCONNECTED, (playerId) => {
+            Logger.log(`Events.gameLobby.PLAYER_DISCONNECTED ${playerId}`);
 
-
-            for (var j = GameInstance.players.length - 1; j >= 0; j--)
-            {
-                if (GameInstance.players[j].id == playerId)
-                {
+            for (let j = GameInstance.players.length - 1; j >= 0; j--) {
+                if (GameInstance.players[j].id === playerId) {
                     Notify.display(
-                        GameInstance.players[j].getTeam().name + " has disconnected ",
+                        `${GameInstance.players[j].getTeam().name} has disconnected`,
                         "Looks like you were too much competition for them. They just gave up, well done!! Although they might have just lost connection... though we will say you won =)",
-                    13000)
+                        13000
+                    );
 
-                    var worms = GameInstance.players[j].getTeam().getWorms();
-                    //Kill all the players worms.
-                    for (var i = 0; i < worms.length; i++)
-                    {
-                        worms[i].hit(999,null,true);
+                    const worms = GameInstance.players[j].getTeam().getWorms();
+                    for (let i = 0; i < worms.length; i++) {
+                        worms[i].hit(999, null, true);
                     }
 
-                    //If the user who disconnected is the current one signal next turn
-                    if (GameInstance.players[j].id == GameInstance.state.getCurrentPlayer().id)
-                    {
-                        GameInstance.state.tiggerNextTurn();
+                    // Trigger next turn if current player left
+                    if (GameInstance.players[j].id === GameInstance.state.getCurrentPlayer().id) {
+                        GameInstance.state.triggerNextTurn();
                     }
                     return;
                 }
             }
         });
-
-
-
     }
 
-    contains(playerId: string) : bool
-    {
-        for (var i in this.playerIds)
-        {          
-            if (this.playerIds[i] == playerId)
-            {
-                return true;
-            }
-        }
-
-        return false;
+    contains(playerId: string): boolean {
+        return this.playerIds.includes(playerId);
     }
 
-    isLobbyEmpty()
-    {
-        return (this.playerIds.length == 0);
+    isLobbyEmpty(): boolean {
+        return this.playerIds.length === 0;
     }
 
-    join(userId, googleUserId, socket)
-    {
-        //Stops a user from joing a room twice
-        if (this.contains(userId) == false && this.status == GameLobby.LOBBY_STATS.WATTING_FOR_PLAYERS)
-        {
-            console.log("Player " + googleUserId + " added to gamelobby " + this.id + " and name " + this.name);
-
-            // Add the player to the gameLobby socket.io room
+    join(userId: string, googleUserId: string, socket: any): void {
+        if (!this.contains(userId) && this.status === GameLobby.LOBBY_STATS.WAITING_FOR_PLAYERS) {
+            console.log(`Player ${googleUserId} added to gamelobby ${this.id}, name: ${this.name}`);
             socket.join(this.id);
 
-            //if (this.currentPlayerId == null)
-            {
-                this.currentPlayerId = userId;
-            }
+            this.currentPlayerId = userId;
 
-            // Write the gameLobbyId to the users socket
             socket.set(SOCKET_STORAGE_GAMELOBBY_ID, this.id);
-
             this.playerIds.push(userId);
 
-            //if the room is full start game
-            if (this.isFull())
-            {
+            if (this.isFull()) {
                 socket.emit(Events.gameLobby.START_GAME_HOST, this);
                 this.status = GameLobby.LOBBY_STATS.GAME_IN_PLAY;
-
-            } else
-            {
-                this.status = GameLobby.LOBBY_STATS.WATTING_FOR_PLAYERS;
+            } else {
+                this.status = GameLobby.LOBBY_STATS.WAITING_FOR_PLAYERS;
             }
         }
     }
 
-    remove(userId)
-    {
-       var index = this.playerIds.indexOf(userId);
-
-       if (index >= 0)
-       {
-           ServerUtilies.deleteFromCollection(this.playerIds, index);
-       }
+    remove(userId: string): void {
+        const index = this.playerIds.indexOf(userId);
+        if (index >= 0) {
+            this.playerIds.splice(index, 1);
+        }
     }
 
-    isFull()
-    {
-        return this.gameLobbyCapacity == this.playerIds.length;
+    isFull(): boolean {
+        return this.gameLobbyCapacity === this.playerIds.length;
     }
-
 }
 
+// For legacy support, if needed
+const SOCKET_STORAGE_GAMELOBBY_ID = 'gameLobbyId';
 
-declare var exports: any;
-if (typeof exports != 'undefined')
-{
-    (module ).exports = GameLobby;
-}
+export { SOCKET_STORAGE_GAMELOBBY_ID };

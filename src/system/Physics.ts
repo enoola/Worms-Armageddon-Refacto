@@ -10,8 +10,7 @@
 //Review by enoola & Qwen
 
 import { Game } from "../Game"
-import { Utils } from "Utils"
-
+import { Utils } from "./Utils"
 // Throws to many errors to use
 //<reference path="../../external/box2dweb-2.1.d.ts" />
 
@@ -39,11 +38,10 @@ var b2Vec2 = Box2D.Common.Math.b2Vec2,
     b2WorldManifold = Box2D.Collision.b2WorldManifold,
     b2Shape = Box2D.Collision.Shapes.b2Shape;
 */
-import { b2Vec2, b2BodyDef, b2FixtureDef, b2Fixture, b2World, b2MassData, b2PolygonShape, b2CircleShape, b2DebugDraw, b2AABB, b2ContactListener, b2RayCastInput, b2RevoluteJointDef, b2RevoluteJoint, b2SimplexVertex, b2WorldManifold, b2Shape } from './box2d-imports';
+import { b2Vec2, b2BodyDef, b2FixtureDef, b2Fixture, b2World, b2MassData, b2PolygonShape, b2CircleShape, b2DebugDraw, b2AABB, b2ContactListener, b2RayCastInput, b2RevoluteJointDef, b2RevoluteJoint, b2SimplexVertex, b2WorldManifold, b2Shape } from '../types/box2d-imports';
 
 export namespace Physics
 {
-
     export var worldScale: number;
     export var world;
     export var debugDraw;

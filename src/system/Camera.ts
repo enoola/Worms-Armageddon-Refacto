@@ -6,7 +6,7 @@
  * @date 20250613
  */
 
-import { b2Vec2 } from "./box2d-imports";
+import { b2Vec2 } from "../types/box2d-imports";
 //import type { b2Vec2 as b2Vec2Type } from '../types/box2d-types'; // Optional if you're using ambient declarations
 
 

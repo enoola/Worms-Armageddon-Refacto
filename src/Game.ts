@@ -11,6 +11,7 @@ import { Camera } from './system/Camera';
 import { Graphics } from './system/Graphics';
 import { AssetManager } from './system/AssetManager';
 import { Physics } from './system/Physics';
+import { TwinStickControls } from './system/GamePad'
 import { Timer } from './system/Timer';
 
 // Environment
@@ -49,7 +50,7 @@ import { Settings } from './Settings';
 import { Tutorial } from './Tutorial';
 import { TouchUI } from './system/touchui';
 
-class Game
+export class Game
 {
     static types = {
         ONLINE_GAME: 0,
