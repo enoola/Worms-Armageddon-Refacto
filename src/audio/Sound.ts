@@ -10,137 +10,78 @@
  *  author:  Ciarán McCann
  *  url: http://www.ciaranmccann.me/
  */
-///<reference path="../system/Utils.ts"/>
-declare var webkitAudioContext; 
+/**
+ * Old import ///<reference path="../system/Utils.ts"/>
+ */
 
-class Sound
-{
-    static context;
+import { Utils } from "../system/Utils"
+import { AssetManager } from "../system/AssetManager";
+import { Settings } from "../Settings";
+import { Logger } from "../utils/logger";
 
-    source;
-    buffer;
-    playing;
+// Polyfill for older browsers
+declare const webkitAudioContext: typeof AudioContext;
 
-    constructor(buffer)
-    {
+const AudioContextImpl = window.AudioContext || (webkitAudioContext as any);
+
+let audioContext: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+    if (!audioContext) {
+        audioContext = new AudioContextImpl();
+    }
+    return audioContext;
+}
+
+export abstract class Sound {
+    protected buffer: AudioBuffer | null = null;
+    protected source: AudioBufferSourceNode | null = null;
+    protected gainNode: GainNode | null = null;
+    protected playing: boolean = false;
+
+    constructor(buffer: AudioBuffer | null) {
         this.buffer = buffer;
-        this.playing = false;
 
-        if (!this.buffer)
-        {
+        if (!this.buffer) {
             Logger.error("buffer null");
         }
     }
 
-    play(volume = 1, time = 0, allowSoundOverLay = false)
-    {
-        if (Settings.SOUND && this.buffer != null)
-        {
-            // if sound is playing don't replay it
-            if (this.playing == false || allowSoundOverLay == true)
-            {
-                this.source = Sound.context.createBufferSource();
-                this.source.buffer = this.buffer;
+    play(volume: number = 1, time: number = 0, allowSoundOverlay: boolean = false): void {
+        if (!Settings.SOUND || !this.buffer) {
+            Logger.debug("Sounds are currently disabled or buffer is missing.");
+            return;
+        }
 
-                var gainNode = Sound.context.createGainNode();
-                this.source.connect(gainNode);
-                gainNode.connect(Sound.context.destination);
-                gainNode.gain.value = volume;
-                this.source.noteOn(time);
-                this.playing = true;
-                var bufferLenght = this.buffer.duration;
+        if (!this.playing || allowSoundOverlay) {
+            this.source = getAudioContext().createBufferSource();
+            this.source.buffer = this.buffer;
 
-                setTimeout(function () => {
-                    this.playing = false;
-                }, bufferLenght * 1000);
-            }
+            this.gainNode = getAudioContext().createGain();
+            this.source.connect(this.gainNode);
+            this.gainNode.connect(getAudioContext().destination);
 
-        } else
-        {
-            Logger.debug("Sounds are currently disabled");
+            this.gainNode.gain.value = volume;
+            this.source.start(time);
+            this.playing = true;
+
+            const duration = this.buffer.duration;
+            setTimeout(() => {
+                this.playing = false;
+            }, duration * 1000);
         }
     }
 
-    isPlaying()
-    {
+    isPlaying(): boolean {
         return this.playing;
     }
 
-    pause()
-    {
-        if (Settings.SOUND && this.buffer != null) {
-            if (typeof(this.source.noteOff) !== 'undefined') {
-                this.source.noteOff(0);
-            }
+    pause(): void {
+        if (Settings.SOUND && this.source) {
+            this.source.stop();
+            this.playing = false;
         }
     }
 
-
+    abstract stop(): void;
 }
-
-//SoundFallback use just the simple Audio tag, works ok but not as feature full as web audio api.
-class SoundFallback extends Sound
-{
-    audio: HTMLAudioElement;
-
-    constructor(soundSrc)
-    {
-        super(soundSrc);  
-        this.load(soundSrc);
-    }
-
-    load(soundSrc)
-    {
-          this.audio = <HTMLAudioElement>document.createElement("Audio");
-
-        // When the sound loads sucesfully tell the asset manager
-        $(this.audio).on("loadeddata", function () =>
-        {
-            AssetManager.numAssetsLoaded++;
-            Logger.log(" Sound loaded " + this.audio.src );
-        });
-
-        this.audio.onerror = function () => {
-            Logger.error( " Sound failed to load " + this.audio.src);
-        }
-
-        this.audio.src = soundSrc;
-        $('body').append(this.audio);
-
-
-    }
-
-    play(volume = 1, time = 0, allowSoundOverLay = false)
-    {
-        if (Settings.SOUND)
-        {
-            // if sound is playing don't replay it
-            //if (this.playing == false || allowSoundOverLay == true)
-            {
-
-                this.audio.volume = volume;    
-                this.audio.play();
-                this.playing = true;
-            }
-
-        } else
-        {
-            Logger.debug("Sounds are currently disabled");
-        }
-    }
-
-    isPlaying()
-    {
-        return this.playing;
-    }
-
-    pause()
-    {
-        if (Settings.SOUND)
-        {
-            this.audio.pause();
-        }
-    }
-}
-
-
