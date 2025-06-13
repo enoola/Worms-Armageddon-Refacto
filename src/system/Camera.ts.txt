@@ -8,9 +8,6 @@
  */
 //<reference path="Utilies.ts"/>
 
-import { b2Vec2 } from "./box2d-imports";
-import { Utils } from "./Utils";
-
 class Camera
 {
 
@@ -24,7 +21,7 @@ class Camera
     panSpeed;
     toPanOrNotToPan;
 
-    constructor (levelWidth: number, levelHeight: number, vpWidth: number, vpHeight: number)
+    constructor (levelWidth, levelHeight, vpWidth, vpHeight)
     {
         this.levelWidth = levelWidth;
         this.levelHeight = levelHeight;
