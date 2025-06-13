@@ -1,34 +1,29 @@
 /**
- * Camera.js
- * This controls the viewport
- *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
+ * @class Camera
+ * @description Camera class controls the viewport
+ * @author qwenola
+ * @version 1.0.0
+ * @date 20250613
  */
-//<reference path="Utilies.ts"/>
 
 import { b2Vec2 } from "./box2d-imports";
-import { Utils } from "./Utils";
+//import type { b2Vec2 as b2Vec2Type } from '../types/box2d-types'; // Optional if you're using ambient declarations
 
-class Camera
-{
 
-    position;
-    levelWidth;
-    levelHeight;
-    vpWidth;
-    vpHeight;
+export class Camera {
+    position!: b2Vec2;
+    levelWidth: number;
+    levelHeight: number;
+    vpWidth: number;
+    vpHeight: number;
 
-    panPosition;
-    panSpeed;
-    toPanOrNotToPan;
+    panPosition!: b2Vec2;
+    panSpeed: number;
+    toPanOrNotToPan: boolean;
 
-    constructor (levelWidth: number, levelHeight: number, vpWidth: number, vpHeight: number)
-    {
+    constructor(levelWidth: number, levelHeight: number, vpWidth: number, vpHeight: number) {
         this.levelWidth = levelWidth;
         this.levelHeight = levelHeight;
-
         this.vpWidth = vpWidth;
         this.vpHeight = vpHeight;
 
@@ -37,97 +32,72 @@ class Camera
 
         this.panSpeed = 6.1;
         this.toPanOrNotToPan = false;
-
     }
 
-    update()
-    {
-        //Logger.log("before Update this.panX = " + this.panX + "  this.x = " + this.x);
-        //Logger.log("before Update this.panY = " + this.panY + "  this.y = " + this.y);
-        if (this.toPanOrNotToPan)
-        {
-            if (this.panPosition.x > this.position.x)
-            {
+    update(): void {
+        if (this.toPanOrNotToPan) {
+            if (this.panPosition.x > this.position.x) {
                 this.incrementX(this.panSpeed);
             }
 
-            if (this.panPosition.x < this.position.x)
-            {
+            if (this.panPosition.x < this.position.x) {
                 this.incrementX(-this.panSpeed);
             }
 
-            if (this.panPosition.y > this.position.y)
-            {
+            if (this.panPosition.y > this.position.y) {
                 this.incrementY(this.panSpeed);
-
             }
 
-            if (this.panPosition.y < this.position.y)
-            {
+            if (this.panPosition.y < this.position.y) {
                 this.incrementY(-this.panSpeed);
             }
         }
-        // Logger.log("after Update this.panX = " + this.panX + "  this.x = " + this.x);
-        //Logger.log("after Update this.panY = " + this.panY + "  this.y = " + this.y);
-
     }
 
-    cancelPan()
-    {
+    cancelPan(): void {
         this.toPanOrNotToPan = false;
     }
 
- 
-    panToPosition(vector)
-    {
-            // Center on said position
-            vector.x -= this.vpWidth / 2;
-            vector.y -= this.vpHeight / 2;
+    panToPosition(vector: b2Vec2): void {
+        const target = new b2Vec2(vector.x - this.vpWidth / 2, vector.y - this.vpHeight / 2);
+        const currentPos = this.position.Clone(); // assuming Clone() is available in b2Vec2
+        currentPos.Subtract(target); // or currentPos.SelfSubtract(target)
+        const diff = currentPos.Length() / 25;
 
-            var currentPos = this.position.Copy();
-            currentPos.Subtract(vector);
-            var diff = currentPos.Length() / 25;
-            this.panSpeed = diff;
-
-            this.panPosition.x = vector.x;
-            this.toPanOrNotToPan = true;
-
-            this.panPosition.y = vector.y;
-        
+        this.panSpeed = diff;
+        this.panPosition = target;
+        this.toPanOrNotToPan = true;
     }
 
-    getX() { return this.position.x; }
-    getY() { return this.position.y; }
+    getX(): number {
+        return this.position.x;
+    }
 
-    setX(x: number)
-    {
-        if (this.vpWidth + x <= this.levelWidth && x >= 0)
-        {
+    getY(): number {
+        return this.position.y;
+    }
+
+    setX(x: number): boolean {
+        if (this.vpWidth + x <= this.levelWidth && x >= 0) {
             this.position.x = x;
             return true;
         }
         return false;
     }
 
-    setY(y: number)
-    {
-        if (this.vpHeight + y <= this.levelHeight && y >= 0)
-        {
+    setY(y: number): boolean {
+        if (this.vpHeight + y <= this.levelHeight && y >= 0) {
             this.position.y = y;
             return true;
         }
-
         return false;
     }
 
-    incrementX(x: number)
-    {
+    incrementX(x: number): boolean {
         return this.setX(this.position.x + x);
     }
 
-    incrementY(y: number)
-    {
+    incrementY(y: number): boolean {
         return this.setY(this.position.y + y);
     }
-
 }

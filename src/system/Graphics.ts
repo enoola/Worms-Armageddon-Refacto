@@ -4,102 +4,108 @@
  * it also setup the request animation frame shim and the stats.js fps counter
  * 
  *  License: Apache 2.0
- *  author:  Ciarán McCann
+ *  author:  Ciarï¿½n McCann
  *  url: http://www.ciaranmccann.me/
  */
-declare var Stats;
-declare var $;
 
-class PreRenderer
-{
+import { Stats } from 'stats.js'
+import { Settings } from '../Settings';
+// Stats is a global variable; you may need to install/import it separately
+declare var stats: any;
+// jQuery
+declare var $: any;
 
-    private createPreRenderCanvas(width,height)
-    {
-        var bufferCanvas = <HTMLCanvasElement>document.createElement('canvas');
-        bufferCanvas.width = width;
-        bufferCanvas.height = height;
-        return bufferCanvas.getContext("2d");
+class PreRenderer {
+    private createPreRenderCanvas(width: number, height: number): CanvasRenderingContext2D {
+        const bufferCanvas = document.createElement('canvas');
+        bufferCanvas.width = width + 2;
+        bufferCanvas.height = height + 2;
+        const ctx = bufferCanvas.getContext("2d");
+        if (!ctx) throw new Error("Could not get canvas context");
+        ctx.translate(1, 1);
+        return ctx;
     }
 
-    render(drawFunc,width,height, canvas = null)
-    {   
-        width += 2;
-        height += 2;
-        var ctx;
+    public render(
+        drawFunc: (ctx: CanvasRenderingContext2D) => void,
+        width: number,
+        height: number,
+        canvas: HTMLCanvasElement | null = null
+    ): HTMLCanvasElement {
+        let ctx: CanvasRenderingContext2D;
 
-        // If we have a canvas thats we want to reRender onto
-        if (canvas)
-        {
-            ctx = canvas.getContext('2d');
-        } else
-        {
+        if (canvas) {
+            const context = canvas.getContext('2d');
+            if (!context) 
+                throw new Error("Could not get canvas context");
+            ctx = context
+        } else {
             ctx = this.createPreRenderCanvas(width, height);
-            ctx.translate(1, 1);
         }
-        
 
         drawFunc(ctx);
         return ctx.canvas;
     }
 
-    renderAnimation(drawFuncsCollection, width, height)
-    {
-        var ctx = this.createPreRenderCanvas(width, height);
-        for (var i in drawFuncsCollection)
-        {
-            drawFuncsCollection[i].call(ctx);
+    public renderAnimation(
+        drawFuncsCollection: ((ctx: CanvasRenderingContext2D) => void)[],
+        width: number,
+        height: number
+    ): HTMLCanvasElement {
+        const ctx = this.createPreRenderCanvas(width, height * drawFuncsCollection.length);
+
+        for (const drawFunc of drawFuncsCollection) {
+            drawFunc.call(ctx, ctx);
             ctx.translate(0, height);
         }
 
+        // Reset translation after rendering
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
         return ctx.canvas;
     }
-
 }
 
-module Graphics
-{
+// === Graphics Module - Converted to ES6-style exports ===
+export namespace Graphics {
+    export let stats: any;
+    export const preRenderer = new PreRenderer();
 
-    export var stats;    
-
-    export var preRenderer = new PreRenderer();
-
-    export function init()
-    {
-        if (Settings.DEVELOPMENT_MODE)
-        {
+    export function init(): void {
+        if (Settings.DEVELOPMENT_MODE) {
             stats = new Stats();
-
-            // Align top-left
             stats.domElement.style.position = 'absolute';
             stats.domElement.style.left = '0px';
             stats.domElement.style.top = '0px';
-
             document.body.appendChild(stats.domElement);
         }
 
-        // requestAnim shim layer by Paul Irish
-        window.requestAnimationFrame = (function ()
-        {
-            return window.requestAnimationFrame ||
-                (<any>window).webkitRequestAnimationFrame ||
-                (<any>window).mozRequestAnimationFrame ||
-                (<any>window).oRequestAnimationFrame ||
-                window.msRequestAnimationFrame ||
-            function ( /* function */ callback, /* DOMElement */ element)
-            {
-                window.setTimeout(callback, 1000 / 60);
-                return true;
-            };
-
+        window.requestAnimationFrame = (() => {
+            return (
+                window.requestAnimationFrame ||
+                (window as any).webkitRequestAnimationFrame ||
+                (window as any).mozRequestAnimationFrame ||
+                (window as any).oRequestAnimationFrame ||
+                window.requestAnimationFrame ||
+                function (callback: FrameRequestCallback): number {
+                    window.setTimeout(callback, 1000 / 60);
+                    return 1;
+                }
+            );
         })();
-
     }
 
-    // may be useful in the furture for drawing rounded conor boxes for over the players head
-    export function roundRect(ctx, x, y, w, h, r)
-    {
+    export function roundRect(
+        ctx: CanvasRenderingContext2D,
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        r: number
+    ): CanvasRenderingContext2D {
         if (w < 2 * r) r = w / 2;
         if (h < 2 * r) r = h / 2;
+
         ctx.beginPath();
         ctx.moveTo(x + r, y);
         ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -110,27 +116,21 @@ module Graphics
         return ctx;
     }
 
-    export function createCanvas(name: string)
-    {
-
-        var canvas = <HTMLCanvasElement>document.createElement('canvas');
+    export function createCanvas(name: string): HTMLCanvasElement {
+        const canvas = document.createElement('canvas');
         canvas.id = name;
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         canvas.style.position = "absolute";
         canvas.style.left = "0px";
         canvas.style.top = "0px";
-        window.document.body.appendChild(canvas);
+        document.body.appendChild(canvas);
 
-        //Disable context menu so I can use right click for game controls
-        $('body').on('contextmenu', "#" + name, function (e)
-        {
+        $('body').on('contextmenu', "#" + name, function (e: Event) {
+            e.preventDefault();
             return false;
         });
 
-
         return canvas;
-
     }
-
 }
