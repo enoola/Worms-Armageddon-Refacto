@@ -16,10 +16,12 @@ export class Team {
     graveStone!: string;
     teamId: number;
     initalNumberOfWorms: number;
+    private gameInstance: Game;
+
 
     static teamCount = 0;
 
-    constructor(playerId: number) {
+    constructor(gameInstance: Game, playerId: number) {
         this.color = Utilies.pickUnqine(["#FA6C1D", "#12AB00", "#B46DD2", "#B31A35", "#23A3C6", "#9A4C44"], "colors");
         this.graveStone = Utilies.pickUnqine(["grave1", "grave2", "grave3", "grave4", "grave5", "grave6"], "gravestones");
 

@@ -50,12 +50,14 @@ import { Settings } from './Settings';
 import { Tutorial } from './Tutorial';
 import { TouchUI } from './system/touchui';
 
+declare const $: any;
+
 export class Game
 {
     static types = {
         ONLINE_GAME: 0,
         LOCAL_GAME: 1
-    };
+    }
 
     actionCanvas;
     actionCanvasContext;
@@ -83,6 +85,7 @@ export class Game
     lobby: Lobby;
 
     winner: Player;
+    private gameInstance: Game;
 
     static map: Map = new Map(Maps.castle);
 
@@ -96,8 +99,10 @@ export class Game
     sticks;
 
 
-    constructor()
+    constructor(gameInstance: Game)
     {
+        this.gameInstance = gameInstance;
+
         Graphics.init();
         this.gameType = Game.types.LOCAL_GAME;
 
@@ -302,7 +307,7 @@ export class Game
             {
                 //Quick hack sprint 4 demo in a few hours - All clients are give bouncing arrows over their worms
                 // so want to remove all arrows from clients whos go it current isn't
-                GameInstance.miscellaneousEffects.stopAll();
+                this.gameInstance.miscellaneousEffects.stopAll();
 
                 Notify.display(this.state.getCurrentPlayer().getTeam().name + "'s turn", "Sit back relax and enjoy the show", 9000, Notify.levels.warn);
             }
@@ -369,7 +374,7 @@ export class Game
 
             if (Client.isClientsTurn())
             {
-                GameInstance.sticks.update();
+                this.gameInstance.sticks.update();
             }
         }
     }

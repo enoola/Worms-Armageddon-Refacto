@@ -7,25 +7,28 @@
  *  author:  Ciar�n McCann
  *  url: http://www.ciaranmccann.me/
  */
-import { Graphics } from "system/Graphics.ts"
-import { Utils } from "system/Utils.ts"
-import { AssetManager } from "system/AssetManager.ts"
-import { Physics } from "system/Physics.ts"
-import { "Game" } from "Game.ts"
-import { "Main" } from "main"
-import { "animation/Sprite.ts"
-import { "animation/PhysicsSprite.ts"
-class Target extends PhysicsSprite
+import { Graphics } from "./system/Graphics"
+import { Utils } from "./system/Utils"
+import { AssetManager } from "./system/AssetManager"
+import { Physics } from "./system/Physics"
+import { Game } from "./Game"
+import { Worm } from "./Worm"
+import { Sprite } from "./animation/Sprite"
+//import { PhysicsSprite } from "./animation/PhysicsSprite";
+
+import { b2Vec2 } from "./types/box2d-imports";
+
+export class Target extends PhysicsSprite
 {
     // Aiming
     private targetDirection;
-    rotationRate;
+    rotationRate: number;
     worm: Worm;
-    direction;
+    direction: number;
 
     //When the player walks and the aims again
     //allows me to reset the sprites current frame to what it was at previously
-    previousSpriteFrame;
+    //private previousSpriteFrame: Sprite;
 
     constructor(worm: Worm)
     {
@@ -37,7 +40,7 @@ class Target extends PhysicsSprite
         this.direction = this.worm.direction;
     }
 
-    draw(ctx)
+    draw(ctx: CanvasRenderingContext2D): void
     {
         if (this.worm.isActiveWorm() && this.worm.getWeapon().requiresAiming)
         {
@@ -69,23 +72,23 @@ class Target extends PhysicsSprite
         this.targetDirection = vector;
     }
 
-    changeDirection(dir)
+    changeDirection(dir: number)
     {
         var td = this.targetDirection.Copy();
-        var currentAngle = Utilies.toDegrees(Utilies.vectorToAngle(td));
+        var currentAngle = Utils.toDegrees(Utils.vectorToAngle(td));
 
         if (dir == Worm.DIRECTION.left && this.direction != dir)
         {
             this.direction = dir;
-            var currentAngle = Utilies.toDegrees(Utilies.toRadians(180) - Utilies.vectorToAngle(td));
-            this.targetDirection = Utilies.angleToVector(Utilies.toRadians(currentAngle));
+            var currentAngle = Utils.toDegrees(Utils.toRadians(180) - Utils.vectorToAngle(td));
+            this.targetDirection = Utils.angleToVector(Utils.toRadians(currentAngle));
 
         } else if (dir == Worm.DIRECTION.right && this.direction != dir)
             {
 
             this.direction = dir;
-            var currentAngle = Utilies.toDegrees(Utilies.toRadians(-180) - Utilies.vectorToAngle(td));
-            this.targetDirection = Utilies.angleToVector(Utilies.toRadians(currentAngle));
+            var currentAngle = Utils.toDegrees(Utils.toRadians(-180) - Utils.vectorToAngle(td));
+            this.targetDirection = Utils.angleToVector(Utils.toRadians(currentAngle));
         }
     }
 
@@ -94,10 +97,10 @@ class Target extends PhysicsSprite
     {
         upOrDown *= this.worm.direction;
         var td = this.targetDirection.Copy();
-        var currentAngle = Utilies.toDegrees( Utilies.toRadians(this.rotationRate * upOrDown) + Utilies.vectorToAngle(td) );
+        var currentAngle = Utils.toDegrees( Utils.toRadians(this.rotationRate * upOrDown) + Utils.vectorToAngle(td) );
 
         //Magic number 0.6 - it works anyway, not enough time. Though if upOrDown changes from 0.8 might need to change it.
-         this.worm.setCurrentFrame(this.worm.getCurrentFrame() + (Utilies.sign(upOrDown * -this.worm.direction) * 0.6))
+         this.worm.setCurrentFrame(this.worm.getCurrentFrame() + (Utils.sign(upOrDown * -this.worm.direction) * 0.6))
         
         //Hack: All the aiming sprite sheets are 32 or greater. 
         //This makes sure if we move the target while jumping that we don't lose 
@@ -112,7 +115,7 @@ class Target extends PhysicsSprite
 
             if (currentAngle > -90 && currentAngle < 90)
             {
-                this.targetDirection = Utilies.angleToVector(Utilies.toRadians(currentAngle));
+                this.targetDirection = Utils.angleToVector(Utils.toRadians(currentAngle));
            
             }
         } else
@@ -120,7 +123,7 @@ class Target extends PhysicsSprite
 
             if ( (currentAngle > 90) || (currentAngle < -90) )
             {
-                this.targetDirection = Utilies.angleToVector(Utilies.toRadians(currentAngle));
+                this.targetDirection = Utils.angleToVector(Utils.toRadians(currentAngle));
 
             }
         }
