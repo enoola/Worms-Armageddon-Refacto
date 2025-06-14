@@ -5,18 +5,14 @@ import { Graphics } from './system/Graphics';
 import { StartMenu } from './gui/StartMenu';
 import { Game } from './Game';
 
-declare const $: any; // If still using jQuery, keep the declaration
-
-
 let GameInstance: Game;
 
 $(document).ready(() => {
     Settings.getSettingsFromUrl();
 
     if (!Settings.RUN_UNIT_TEST_ONLY) {
-        
+        const startMenu = new StartMenu();
         GameInstance = new Game();
-        const startMenu = new StartMenu( GameInstance);
         AssetManager.loadAssets();
 
         startMenu.onGameReady(() => {

@@ -5,12 +5,10 @@
  *  TODO Complete this when intergrating gamepad
  *
  *  License: Apache 2.0
- *  author:  Ciarï¿½n McCann
+ *  author:  Ciarán McCann
  *  url: http://www.ciaranmccann.me/
  */
-import { keyboard } from "./keyboard"
-
-export namespace Controls
+module Controls
 {
     export var toggleWeaponMenu =
     {

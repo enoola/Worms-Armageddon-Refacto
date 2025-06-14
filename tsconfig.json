@@ -9,7 +9,6 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "moduleResolution": "node",
-    "types": ["Box2dWeb-2.1.a.3"],
     "typeRoots": ["./types", "./node_modules/@types"]
   },
   "include": ["src/**/*"]

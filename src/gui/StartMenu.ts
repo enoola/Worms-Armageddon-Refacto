@@ -13,21 +13,27 @@
 import { Settings } from "../Settings";
 import { Controls } from "../system/Controls";
 import { AssetManager } from "../system/AssetManager";
-import { Notify } from "../gui/Notify"; // Assuming you have a Notify class/module
+import { Notify } from "../utils/notify"; // Assuming you have a Notify class/module
 import { SettingsMenu } from "./SettingsMenu";
-import { GameInstance } from "../Game"; // Adjust path as needed
-import { TouchUI } from "../gui/TouchUI"; // Optional: assuming this exists
+import { Game } from "../Game"; // Adjust path as needed
+import { TouchUI } from "../system/touchui"; // Optional: assuming this exists
 
 declare const $: any; // If still using jQuery, keep the declaration
 
+/*
+* we will make some change to not rely on an globaly available instance of Game e.g GameInstance
+*/
+
 export class StartMenu {
+    private gameInstance: Game;
     private controlsView: string;
-    public settingsMenu: SettingsMenu;
+    public settingsMenu: SettingsMenu = new SettingsMenu;
     static callback: () => void;
 
-    constructor() {
+    constructor(gameInstance: Game) {
+        this.gameInstance = gameInstance;
         // Build controls view dynamically
-        this.controlsView = `
+        this.controlsView = ` 
             <div style="text-align:center">
                 <p>
                     Just in case you've never played the original Worms Armageddon,
@@ -119,9 +125,9 @@ export class StartMenu {
 
             $('#startOnline').off('click').on('click', () => {
                 if (AssetManager.isReady()) {
-                    if (GameInstance.lobby.client_init() !== false) {
+                    if (this.gameInstance.lobby.client_init() !== false) {
                         $('#notice').empty();
-                        GameInstance.lobby.menu.show(callback);
+                        this.gameInstance.lobby.menu.show(callback);
                         AssetManager.getSound("CursorSelect").play();
                     } else {
                         $('#notice').empty();
@@ -137,7 +143,7 @@ export class StartMenu {
             $('#startTutorial').off('click').on('click', () => {
                 if (AssetManager.isReady()) {
                     AssetManager.getSound("CursorSelect").play();
-                    GameInstance.tutorial = new Tutorial(); // Assumes Tutorial class exists
+                    this.gameInstance.tutorial = new Tutorial(); // Assumes Tutorial class exists
                     this.controlsMenu(callback);
                 }
             });
