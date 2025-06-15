@@ -86,7 +86,8 @@ export class Game
 
     winner: Player;
  
-    static map: Map = new Map(Maps.castle);
+//    static map: Map = new Map(Maps.castle);
+    static map: Map = Maps.castle;
 
     camera: Camera;
 

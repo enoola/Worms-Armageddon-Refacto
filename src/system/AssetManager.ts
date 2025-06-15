@@ -1,4 +1,4 @@
-import { getAudioContext, Sound } from "../audio/Sound";
+import { Sound } from "../audio/Sound";
 import { Settings } from "../Settings";
 import { Sprite } from "../animation/Sprite";
 import { Maps } from "../environment/Maps";
@@ -108,11 +108,10 @@ export const AssetManager = {
     async loadSounds(sources: string[]): Promise<void> {
         try {
             if (Settings.BUILD_MANIFEST_FILE) throw new Error("Using manifest");
-            ctx: AudioContext
+
             // Try Web Audio API first
-            audioCtx=getAudioContext()
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            if (!Sound.context) {
+                Sound.context = new (window.AudioContext || (window as any).webkitAudioContext)();
             }
 
             const bufferLoader = new BufferLoader(Sound.context, sources, (bufferList: any[]) => {

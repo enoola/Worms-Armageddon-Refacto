@@ -27,9 +27,11 @@ export class Map {
     }
 
     getNextSpawnPoint(): SpawnPoint {
-        var aSpawnPoint: SpawnPoint;
-        aSpawnPoint = Utils.pickUnique(this.mapDef.spawnPionts, "spawnPoints");
+        var aSpawnPoint: SpawnPoint|undefined;
+        aSpawnPoint = Utils.pickUnique(this.mapDef.spawnPionts, "spawnPoints")
+        ==undefined ? {x=42,y=42}:aSpawnPoint;
         if (!aSpawnPoint)
+            aSpawnPoint.x=42, y=42 }
         return ( aSpawnPoint )
     }
 
