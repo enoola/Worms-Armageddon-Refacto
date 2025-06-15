@@ -9,7 +9,11 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "moduleResolution": "node",
-    "typeRoots": ["./types", "./node_modules/@types"]
-  },
-  "include": ["src/**/*"]
+    "types": ["box2d"],
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
 }

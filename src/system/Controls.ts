@@ -8,11 +8,24 @@
  *  author:  Ciar�n McCann
  *  url: http://www.ciaranmccann.me/
  */
+import { GamePad } from "./GamePad";
 import { keyboard } from "./keyboard"
 
-export namespace Controls
-{
-    export var toggleWeaponMenu =
+export class OneControl {
+    public gamepad: GamePad;
+    public keyboard: number;
+    public mouse: number;
+}
+
+//export namespace Controls
+export const weapons = {
+    jetPackFlamesDown: {
+        imageName: "wjetflmd",
+        frameY: 0,
+        frameCount: 6,
+        msPerFrame: 100,
+    },
+    export toggleWeaponMenu =
     {
         gamepad: -1,
         keyboard: 101,
@@ -68,7 +81,7 @@ export namespace Controls
         mouse: 1
     }
 
-    export function checkControls(control,key)
+    export function checkControls(control: Controls,key)
     {
         return (key == control.gamepad || key == control.keyboard ||  key == control.mouse);
     }

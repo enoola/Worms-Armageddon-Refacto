@@ -85,8 +85,7 @@ export class Game
     lobby: Lobby;
 
     winner: Player;
-    private gameInstance: Game;
-
+ 
     static map: Map = new Map(Maps.castle);
 
     camera: Camera;
@@ -99,9 +98,8 @@ export class Game
     sticks;
 
 
-    constructor(gameInstance: Game)
+    constructor()
     {
-        this.gameInstance = gameInstance;
 
         Graphics.init();
         this.gameType = Game.types.LOCAL_GAME;

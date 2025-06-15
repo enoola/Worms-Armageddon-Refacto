@@ -2,18 +2,19 @@
  * WormManager.js
  *
  *  License: Apache 2.0
- *  author:  Ciarán McCann
+ *  author:  Ciarï¿½n McCann
  *  url: http://www.ciaranmccann.me/
  */
-///<reference path="system/Camera.ts"/>
-///<reference path="system/Graphics.ts"/>
-///<reference path="system/AssetManager.ts"/>
-///<reference path="system/Physics.ts"/>
-///<reference path="Worm.ts"/>
-///<reference path="system/Utilies.ts"/>
-///<reference path="system/Timer.ts" />
-///<reference path="Settings.ts" />
-
+import { Camera } from  "./system/Camera";
+import { Graphics } from  "./system/Graphics";
+import { AssetManager } from  "./system/AssetManager";
+import { Physics } from  "./system/Physics";
+import { Worm } from  "./Worm";
+import { Utils } from  "./system/Utils";
+import { Timer } from  "./system/Timer";
+import { Settings } from  "./Settings";
+import { Player } from "./Player";
+import { Logger } from "./utils/logger";
 
 class WormManager
 {
@@ -35,7 +36,7 @@ class WormManager
             }
         }
 
-        Logger.log( this.allWorms);
+        Logger.log( this.allWorms.toString() );
     }
 
     findWormWithName(name: string)

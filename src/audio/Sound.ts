@@ -24,9 +24,9 @@ declare const webkitAudioContext: typeof AudioContext;
 
 const AudioContextImpl = window.AudioContext || (webkitAudioContext as any);
 
-let audioContext: AudioContext | null = null;
+export let audioContext: AudioContext | null = null;
 
-function getAudioContext(): AudioContext {
+export function getAudioContext(): AudioContext {
     if (!audioContext) {
         audioContext = new AudioContextImpl();
     }

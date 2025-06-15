@@ -19,7 +19,7 @@ import { Settings } from "../Settings"
 import { Physics } from "./Physics"
 import { Logger } from "../utils/logger"
 import { AssetManager } from "./AssetManager"
-import { Sound } from "./"
+import { Sound } from "../audio/Sound"
 //declare var $;
 //Declare jQuery type - safe global(optional, if still using jQuery)
 declare const $: any;
@@ -101,46 +101,39 @@ export namespace Utils {
     * @function copy copies all properties from source to target.
     * Mutates the target object.
     */
-        export function copy<T extends Record<string, any>>(target: T, source: Partial<T>): T {
-        for (const key in source) {
-            if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
-
-            const value = source[key];
-
-            if (value === null || value === undefined) {
-                (target[key] as any) = value;
-                continue;
-            }
-
-            // Handle Date
-            
-            if (isDate(value)) {
-                target[key] = new Date(value) as any;
-                continue;
-            }
-
-            // Handle Array
-            if (Array.isArray(value)) {
-                target[key] = ([] as any[]).concat(
-                    value.map(item => (typeof item === "object" ? copy({}, item) : item))
-                ) as any;
-                continue;
-            }
-
-            // Handle Object
-            if (typeof value === "object") {
-                if (!(key in target) || typeof target[key] !== "object" || target[key] === null) {
-                    target[key] = {} as any;
-                }
-                copy(target[key], value);
-                continue;
-            }
-
-            // Primitive values
-            target[key] = value;
+    export function copy<T extends Record<string, any>>(target: T, source: Partial<T>): T {
+    for (const key in source) {
+        if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
+        const value = source[key];
+        if (value === null || value === undefined) {
+            (target[key] as any) = value;
+            continue;
         }
-
-        return target;
+        // Handle Date
+        
+        if (isDate(value)) {
+            target[key] = new Date(value) as any;
+            continue;
+        }
+        // Handle Array
+        if (Array.isArray(value)) {
+            target[key] = ([] as typeof value[0][]).concat(
+                value.map((item: typeof value[0]) => (typeof item === "object" ? copy({}, item) : item))
+            );
+            continue;
+        }
+        // Handle Object
+        if (typeof value === "object") {
+            if (!(key in target) || typeof target[key] !== "object" || target[key] === null) {
+                target[key] = {} as any;
+            }
+            copy(target[key], value);
+            continue;
+        }
+        // Primitive values
+        target[key] = value;
+    }
+    return target;
     }
 
     export function sign(x: number) { return x > 0 ? 1 : x < 0 ? -1 : 0; }

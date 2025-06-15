@@ -6,6 +6,9 @@ import { AssetManager } from "./system/AssetManager";
 import { WormAnimationManger } from "./WormAnimationManger";
 import { Target } from "./Target";
 import { Timer } from "./system/Timer";
+import { b2Body, b2BodyDef, b2CircleShape, b2FixtureDef, b2PolygonShape, b2Vec2 } from "./types/box2d-imports";
+
+
 
 export class Worm extends Sprite {
     static DENSITY = 10.0;
@@ -78,7 +81,7 @@ export class Worm extends Sprite {
         this.soundDelayTimer = new Timer(200);
         this.fallHeight = this.body.GetPosition().y;
 
-        Physics.addToFastAccessList(this.body);
+        Physics.addToFastAcessList(this.body);
     }
 
     preRendering(): void {

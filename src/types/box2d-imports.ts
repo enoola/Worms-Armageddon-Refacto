@@ -1,5 +1,5 @@
 // box2d-imports.ts
-const Box2D = window['Box2D'];
+export const Box2D = window['Box2D'];
 
 export const b2Vec2 = Box2D.Common.Math.b2Vec2;
 export const b2BodyDef = Box2D.Dynamics.b2BodyDef;

@@ -5,10 +5,13 @@
  * Also includes touch controls (TwinStickControls) for mobile devices.
  */
 
-export class GamePad {
+import { AssetManager } from "./AssetManager";
+
+ export class GamePad {
     isConnected = false;
     pad: any;
     padNumber = 0;
+    //normal: b2Vector
 
     static numPads = 0;
 
@@ -65,6 +68,7 @@ export class Stick {
     maxLength: number;
     limit = { x: 0, y: 0 };
     input = { x: 0, y: 0 };
+    normal = { x: 0, y: 0 };
 
     constructor(maxLength: number, active = false) {
         this.maxLength = maxLength;
@@ -128,6 +132,7 @@ export class Stick {
         }
 
         this.length = length;
+        this.normal = this.getVectorNormal(diff);
     }
 }
 
@@ -184,10 +189,20 @@ export class TwinStickControls {
         }
     }
 
+    /**
+     * 
+     * @param stickId 
+     * @infos the Stick class currently uses this.normal as a property that is set during update(). However, in your modernized version (or if you followed the refactor we did earlier), the .normal property may not be persisted , \
+        and instead should be calculated on the fly using: this.getVectorNormal(diff)
+     * @returns 
+     */
+
     getNormal(stickId: number): { x: number; y: number } {
         const stick = this.sticks[stickId];
+        const diff = stick.subtractVectors(stick.input, stick.limit);
+
         if (stick?.active && stick.length > 30) {
-            return stick.normal;
+            return stick.getVectorNormal(diff);
         }
         return { x: 0, y: 0 };
     }
@@ -226,9 +241,4 @@ export class TwinStickControls {
             }
         }
     }
-}
-
-// Stub for AssetManager until implemented
-declare global {
-    var AssetManager: any;
 }

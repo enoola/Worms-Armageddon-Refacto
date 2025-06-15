@@ -1,22 +1,22 @@
 /**
  *
  *  License: Apache 2.0
- *  author:  Ciarán McCann
+ *  author:  Ciarï¿½n McCann
  *  url: http://www.ciaranmccann.me/
  */
-///<reference path="system/Graphics.ts"/>
-///<reference path="system/AssetManager.ts"/>
-///<reference path="system/Physics.ts"/>
-///<reference path="animation/Sprite.ts"/>
-///<reference path="weapons/Drill.ts"/>
-///<reference path="Team.ts"/>
-///<reference path="system/Utilies.ts" />
-///<reference path="system/NameGenerator.ts" />
-///<reference path="system/Timer.ts" />
-///<reference path="Main.ts" />
-///<reference path="Worm.ts" />
+import { Graphics } from "./system/Graphics";
+import { AssetManager } from "./system/AssetManager"
+import { } from "./system/Physics";
+import { } from "./animation/Sprite";
+import { } from "./weapons/Drill";
+import { } from "./Team";
+import { } from "./system/Utilies";
+import { } from "./system/NameGenerator";
+import { } from "./system/Timer";
+import { } from //"Main"
+import { } from "./Worm";
 
-class WormAnimationManger
+export class WormAnimationManger
 {
     static WORM_STATE = {
 

@@ -4,7 +4,7 @@
  * to increase codebase readablity. It also mangaes the global box2d contactlistner.
  *
  *  License: Apache 2.0
- *  author:  Ciarán McCann
+ *  author:  Ciarï¿½n McCann
  *  url: http://www.ciaranmccann.me/
  */
 

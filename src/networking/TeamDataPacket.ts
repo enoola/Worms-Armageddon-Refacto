@@ -1,3 +1,10 @@
+/**
+ * @namespace TeamDataPacket
+ * @description Handles te
+ * @author qwenola
+ * @version 1.0.0
+ * @date 20250613
+ */
 
 //extracted from Teams.ts
 

@@ -7,18 +7,20 @@
  *  author:  Ciar�n McCann
  *  url: http://www.ciaranmccann.me/
  */
-///<reference path="../system/Physics.ts"/>
-///<reference path="../system/Utils.ts" />
-///<reference path="../Worm.ts" />
-///<reference path="../animation/Sprite.ts"/>
-///<reference path="../system/Timer.ts"/>
-///<reference path="../Game.ts"/>
-///<reference path="BaseWeapon.ts"/>
+
+
+import { Physics } from "../system/Physics"
+import { Utils} from "../system/Utils"
+import { Worm } from "../Worm" 
+import { Sprite } from "../animation/Sprite"
+import { Timer } from "../system/Timer"
+import { Game } from "../Game"
+import { BaseWeapon } from "./BaseWeapon"
 
 
 class Drill extends BaseWeapon
 {
-    worm: Worm;
+    private worm: Worm = null;
     timeBetweenExploisionsTimer: Timer;
     useDurationTimer: Timer;
 

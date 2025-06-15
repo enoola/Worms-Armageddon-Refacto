@@ -22,6 +22,8 @@ export class Team {
     static teamCount = 0;
 
     constructor(gameInstance: Game, playerId: number) {
+        this.gameInstance = gameInstance;
+        
         this.color = Utilies.pickUnqine(["#FA6C1D", "#12AB00", "#B46DD2", "#B31A35", "#23A3C6", "#9A4C44"], "colors");
         this.graveStone = Utilies.pickUnqine(["grave1", "grave2", "grave3", "grave4", "grave5", "grave6"], "gravestones");
 
@@ -103,7 +105,7 @@ export class Team {
         }
 
         const pos = Physics.metersToPixelsVec(this.worms[0].body.GetPosition());
-        GameInstance.camera.panToPosition(pos);
+        this.gameInstance.camera.panToPosition(pos);
 
         AssetManager.getSound("victory").play(1, 15);
         AssetManager.getSound("Ireland").play(1, 16);
@@ -118,34 +120,6 @@ export class Team {
     draw(ctx: CanvasRenderingContext2D): void {
         for (const worm of this.worms) {
             worm.draw(ctx);
-        }
-    }
-}
-
-export class TeamDataPacket {
-    wormsDataPacket: WormDataPacket[];
-    name!: string;
-    graveStone!: string;
-    color!: string;
-
-    constructor(team: Team) {
-        this.graveStone = team.graveStone;
-        this.name = team.name;
-        this.color = team.color;
-        this.wormsDataPacket = [];
-
-        for (const w in team.worms) {
-            this.wormsDataPacket.push(new WormDataPacket(team.worms[w]));
-        }
-    }
-
-    override(team: Team): void {
-        team.name = this.name;
-        team.graveStone = this.graveStone;
-        team.color = this.color;
-
-        for (let w in this.wormsDataPacket) {
-            this.wormsDataPacket[w].override(team.getWorms()[w]);
         }
     }
 }

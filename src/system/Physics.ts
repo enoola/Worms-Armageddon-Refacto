@@ -1,388 +1,211 @@
 /**
- * Physics
- * This namespace holes the box2d physics world and scale. It provides helper convert methods
- * to increase codebase readablity. It also mangaes the global box2d contactlistner.
- *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
+ * @namespace Physics
+ * @description Manages world, gravity, raycasting, contact listeners, etc.
+ * @author qwenola
+ * @version 1.0.0
+ * @date 20250613
  */
-//Review by enoola & Qwen
 
-import { Game } from "../Game"
-import { Utils } from "./Utils"
-// Throws to many errors to use
-//<reference path="../../external/box2dweb-2.1.d.ts" />
+import {
+  b2Vec2,
+  b2BodyDef,
+  b2Body,
+  b2FixtureDef,
+  b2World,
+  b2DebugDraw,
+  b2ContactListener,
+  b2AABB,
+  b2RayCastInput,
+  b2RayCastOutput,
+  b2DistanceJointDef,
+  b2RevoluteJointDef,
+  b2SimplexVertex,
+  b2WorldManifold,
+  b2Shape,
+} from "../types/box2d-imports";
 
-/*
-declare var Box2D;
-//Global defining of shortened names for box2d types
-var b2Vec2 = Box2D.Common.Math.b2Vec2,
-    b2BodyDef = Box2D.Dynamics.b2BodyDef,
-    b2Body = Box2D.Dynamics.b2Body,
-    b2FixtureDef = Box2D.Dynamics.b2FixtureDef,
-    b2Fixture = Box2D.Dynamics.b2Fixture,
-    b2World = Box2D.Dynamics.b2World,
-    b2MassData = Box2D.Collision.Shapes.b2MassData,
-    b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape,
-    b2CircleShape = Box2D.Collision.Shapes.b2CircleShape,
-    b2DebugDraw = Box2D.Dynamics.b2DebugDraw,
-    b2AABB = Box2D.Collision.b2AABB,
-    b2ContactListener = Box2D.Dynamics.b2ContactListener,
-    b2RayCastInput = Box2D.Collision.b2RayCastInput,
-    b2DistanceJointDef = Box2D.Dynamics.Joints.b2DistanceJointDef,
-    b2RayCastOutput = Box2D.Collision.b2RayCastOutput,
-    b2RevoluteJointDef = Box2D.Dynamics.Joints.b2RevoluteJointDef,
-    b2RevoluteJoint = Box2D.Dynamics.Joints.b2RevoluteJoint,
-    b2SimplexVertex = Box2D.Collision.b2SimplexVertex,
-    b2WorldManifold = Box2D.Collision.b2WorldManifold,
-    b2Shape = Box2D.Collision.Shapes.b2Shape;
-*/
-import { b2Vec2, b2BodyDef, b2FixtureDef, b2Fixture, b2World, b2MassData, b2PolygonShape, b2CircleShape, b2DebugDraw, b2AABB, b2ContactListener, b2RayCastInput, b2RevoluteJointDef, b2RevoluteJoint, b2SimplexVertex, b2WorldManifold, b2Shape } from '../types/box2d-imports';
 
-export namespace Physics
-{
-    export var worldScale: number;
-    export var world;
-    export var debugDraw;
+import { Utils } from "./Utils";
+import { Settings } from "../Settings";
+import { Logger } from "../utils/logger";
 
-    // For fast acess to all bodies that aren't the terrain
-    export var fastAcessList = [];
-    export function addToFastAcessList(body)
-    {
-        fastAcessList.push(body);
-    }
+// Re-export Box2D for convenience
+export { Box2D } from "../types/box2d-imports";
 
-    export function removeToFastAcessList(body)
-    {
-        for (var b in fastAcessList)
-        {
-            if (fastAcessList[b] === body)
-            {
-                Utils.deleteFromCollection(fastAcessList, b);
-            }
+
+/**
+ * Physics namespace/module
+ * Manages world, gravity, raycasting, contact listeners, etc.
+ */
+export const Physics = {
+    worldScale: 30,
+    //world: null as b2World | null,
+    world: typeof b2World,
+    //debugDraw: null as b2DebugDraw | null,
+    debugDraw: b2DebugDraw,
+    fastAcessList: [] as typeof b2Body[],
+
+    /**
+     * Initialize physics world and debug draw
+     */
+    init(ctx: CanvasRenderingContext2D): void {
+        if (this.world) return;
+
+        this.world = new b2World(new b2Vec2(0, 10), true); // gravity + allow sleep
+
+        this.debugDraw = new b2DebugDraw();
+        this.debugDraw.SetSprite(ctx);
+        this.debugDraw.SetDrawScale(this.worldScale);
+        this.debugDraw.SetFillAlpha(0.3);
+        this.debugDraw.SetLineThickness(1.0);
+        this.debugDraw.SetFlags(b2DebugDraw.e_jointBit | b2DebugDraw.e_shapeBit);
+
+        this.world.SetDebugDraw(this.debugDraw);
+
+        const listener = new b2ContactListener();
+
+        listener.BeginContact = (contact: b2Contact) => {
+            const userDataA = contact.GetFixtureA().GetBody().GetUserData();
+            const userDataB = contact.GetFixtureB().GetBody().GetUserData();
+
+            if (userDataA?.beginContact) userDataA.beginContact(contact);
+            if (userDataB?.beginContact) userDataB.beginContact(contact);
+        };
+
+        listener.EndContact = (contact: { x: number, y: number }) => {
+            const userDataA = contact.GetFixtureA().GetBody().GetUserData();
+            const userDataB = contact.GetFixtureB().GetBody().GetUserData();
+
+            if (userDataA?.endContact) userDataA.endContact(contact);
+            if (userDataB?.endContact) userDataB.endContact(contact);
+        };
+
+        listener.PostSolve = (contact: { x: number, y: number }, impulse) => {
+            const userDataA = contact.GetFixtureA().GetBody().GetUserData();
+            const userDataB = contact.GetFixtureB().GetBody().GetUserData();
+
+            if (userDataA?.postSolve) userDataA.postSolve(contact, impulse);
+            if (userDataB?.postSolve) userDataB.postSolve(contact, impulse);
+        };
+
+        listener.PreSolve = (contact) => {
+            const userDataA = contact.GetFixtureA().GetBody().GetUserData();
+            const userDataB = contact.GetFixtureB().GetBody().GetUserData();
+
+            if (userDataA?.preSolve) userDataA.preSolve(contact);
+            if (userDataB?.preSolve) userDataB.preSolve(contact);
+        };
+
+        this.world.SetContactListener(listener);
+    },
+
+    /**
+     * Add body to fast access list
+     */
+    addToFastAcessList(body: b2Body): void {
+        this.fastAcessList.push(body);
+    },
+
+    /**
+     * Remove body from fast access list
+     */
+    removeToFastAcessList(body: typeof b2Body): void {
+        const index = this.fastAcessList.indexOf(body);
+        if (index > -1) {
+            this.fastAcessList.splice(index, 1);
         }
-    }
+    },
 
+    /**
+     * Check if contact involves both types
+     */
+    isCollisionBetweenTypes(objType1: any, objType2: any, contact: any): boolean {
+        const obj1 = contact.GetFixtureA().GetBody().GetUserData();
+        const obj2 = contact.GetFixtureB().GetBody().GetUserData();
 
-    export function init(ctx)
-    {
-
-        Physics.worldScale = 30;
-
-        // Creating our physics world.
-        Physics.world = new b2World(
-            new b2Vec2(0, 10),//gravity
-            true //allow sleep
-        );
-
-        //Setting up debug drawing of the physics world
-        debugDraw = new b2DebugDraw();
-        debugDraw.SetSprite(ctx);
-        debugDraw.SetDrawScale(Physics.worldScale);
-        debugDraw.SetFillAlpha(0.3);
-        debugDraw.SetLineThickness(1.0);
-        debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
-        world.SetDebugDraw(debugDraw);
-
-
-        // This sets up the world contact listenre
-        // when their is a contact we get the user data from the
-        // two bodies that are in contact. In the construction of these bodies
-        // I have set the this pionter as the user data, which allows me to then call methods
-        // on that class as we can see below.
-        var listener = new b2ContactListener();
-        listener.BeginContact = function (contact) =>
-        {
-            if (contact.GetFixtureA().GetBody().GetUserData() != null &&
-                contact.GetFixtureA().GetBody().GetUserData().beginContact != null)
-            {
-                contact.GetFixtureA().GetBody().GetUserData().beginContact(contact);
-            }
-
-            if (contact.GetFixtureB().GetBody().GetUserData() != null &&
-                contact.GetFixtureB().GetBody().GetUserData().beginContact != null)
-            {
-                contact.GetFixtureB().GetBody().GetUserData().beginContact(contact);
-            }
-        }
-
-
-        listener.EndContact = function (contact) =>
-        {
-            if (contact.GetFixtureA().GetBody().GetUserData() != null &&
-                contact.GetFixtureA().GetBody().GetUserData().endContact != null)
-            {
-                contact.GetFixtureA().GetBody().GetUserData().endContact(contact);
-            }
-
-            if (contact.GetFixtureB().GetBody().GetUserData() != null &&
-                contact.GetFixtureB().GetBody().GetUserData().endContact != null)
-            {
-                contact.GetFixtureB().GetBody().GetUserData().endContact(contact);
-            }
-        }
-
-        listener.PostSolve = function (contact,impulse) =>
-        {
-            if (contact.GetFixtureA().GetBody().GetUserData() != null &&
-                contact.GetFixtureA().GetBody().GetUserData().postSolve != null)
-            {
-                contact.GetFixtureA().GetBody().GetUserData().postSolve(contact,impulse);
-            }
-
-            if (contact.GetFixtureB().GetBody().GetUserData() != null &&
-                contact.GetFixtureB().GetBody().GetUserData().postSolve != null)
-            {
-                contact.GetFixtureB().GetBody().GetUserData().postSolve(contact,impulse);
-            }
-
-        }
-
-        listener.PreSolve = function (contact) =>
-        {
-            if (contact.GetFixtureA().GetBody().GetUserData() != null &&
-                contact.GetFixtureA().GetBody().GetUserData().preSolve != null)
-            {
-                contact.GetFixtureA().GetBody().GetUserData().preSolve(contact);
-            }
-
-            if (contact.GetFixtureB().GetBody().GetUserData() != null &&
-                contact.GetFixtureB().GetBody().GetUserData().preSolve != null)
-            {
-                contact.GetFixtureB().GetBody().GetUserData().preSolve(contact);
-            }
-
-        }
-
-        world.SetContactListener(listener);
-    }
-
-    //Checks if the collison is between an obj of type1 and an obj of type2
-    export function isCollisionBetweenTypes(objType1, objType2, contact)
-    {
-        var obj1 = contact.GetFixtureA().GetBody().GetUserData();
-        var obj2 = contact.GetFixtureB().GetBody().GetUserData();
-
-        if (
-            (obj1 instanceof objType1 || obj1 instanceof objType2)
-            &&
+        return (
+            (obj1 instanceof objType1 || obj1 instanceof objType2) &&
             (obj2 instanceof objType1 || obj2 instanceof objType2)
-          )
-        {
-            return true;
-        } else
-        {
-            return false;
-        }
-    }
+        );
+    },
 
-    export function shotRay(startPiontInMeters, endPiontInMeters)
-    {
-        var input = new b2RayCastInput();
-        var output = new b2RayCastOutput();
-        var intersectionPoint = new b2Vec2();
-        var normalEnd = new b2Vec2();
-        var intersectionNormal = new b2Vec2();
+    /**
+     * Raycast utility
+     */
+    shotRay(startPiontInMeters: typeof b2Vec2, endPiontInMeters: typeof b2Vec2): typeof b2Vec2 | null {
+        const input = new b2RayCastInput();
+        const output = new b2RayCastOutput();
+        let intersectionPoint = new b2Vec2();
+        let closestFraction = 1;
+        let bodyFound = false;
 
-        endPiontInMeters.Multiply(30);
-        endPiontInMeters.Add(startPiontInMeters);
+        const extendedEnd = b2Vec2.Make(endPiontInMeters.x * 30, endPiontInMeters.y * 30);
+        extendedEnd.Add(startPiontInMeters);
 
         input.p1 = startPiontInMeters;
-        input.p2 = endPiontInMeters;
+        input.p2 = extendedEnd;
         input.maxFraction = 1;
-        var closestFraction = 1;
-        var bodyFound = false;
 
-        var b = new b2BodyDef();
-        var f = new b2FixtureDef();
-        for (b = Physics.world.GetBodyList(); b; b = b.GetNext())
-        {
-            for (f = b.GetFixtureList(); f; f = f.GetNext())
-            {
-                if (!f.RayCast(output, input))
-                    continue;
-                else if (output.fraction < closestFraction && output.fraction > 0)
-                    {
-                        //Fixes bug where I was getting extremely small e numbers
-                        // in the lower sections of the physics world. It was causing the
-                        // ray to shot only a small disntance from the orign of it.
-                        if (output.fraction > 0.001)
-                        {
-                            closestFraction = output.fraction;
-                            intersectionNormal = output.normal;
-                            bodyFound = true;
-                        }
+        for (let b = this.world!.GetBodyList(); b; b = b.GetNext()) {
+            for (let f = b.GetFixtureList(); f; f = f.GetNext()) {
+                if (!f.RayCast(output, input)) continue;
+
+                if (output.fraction < closestFraction && output.fraction > 0.001) {
+                    closestFraction = output.fraction;
+                    intersectionPoint = b2Vec2.Make(
+                        startPiontInMeters.x + closestFraction * (extendedEnd.x - startPiontInMeters.x),
+                        startPiontInMeters.y + closestFraction * (extendedEnd.y - startPiontInMeters.y)
+                    );
+                    bodyFound = true;
                 }
             }
-
-        }
-        intersectionPoint.x = startPiontInMeters.x + closestFraction * (endPiontInMeters.x - startPiontInMeters.x);
-        intersectionPoint.y = startPiontInMeters.y + closestFraction * (endPiontInMeters.y - startPiontInMeters.y);
-
-        if (bodyFound)
-        {
-            return intersectionPoint;
         }
 
-        return null;
-    }
+        return bodyFound ? intersectionPoint : null;
+    },
 
-    export function applyToNearByObjects(epicenter, effectedRadius, funcToApplyToEach)
-    {
-        var aabb = new b2AABB();
+    /**
+     * Apply function to objects within radius
+     */
+    applyToNearByObjects(epicenter: typeof b2Vec2, effectedRadius: number, funcToApplyToEach: (fixture: any, epicenter: typeof b2Vec2) => void): void {
+        const aabb = new b2AABB();
         aabb.lowerBound.Set(epicenter.x - effectedRadius, epicenter.y - effectedRadius);
         aabb.upperBound.Set(epicenter.x + effectedRadius, epicenter.y + effectedRadius);
 
-        Physics.world.QueryAABB(function (fixture) =>
-        {
+        this.world!.QueryAABB((fixture) => {
             funcToApplyToEach(fixture, epicenter);
             return true;
-
         }, aabb);
-    }
+    },
 
-    //Converts pixels to physic world measurement
-    export function pixelToMeters(pixels: number)
-    {
-        return pixels / worldScale;
-    }
+    /**
+     * Convert pixels to meters
+     */
+    pixelToMeters(pixels: number): number {
+        return pixels / this.worldScale;
+    },
 
-    //Converts physic world measurement to pixels;
-    export function metersToPixels(meters: number)
-    {
-        return meters * worldScale;
-    }
+    /**
+     * Convert meters to pixels
+     */
+    metersToPixels(meters: number): number {
+        return meters * this.worldScale;
+    },
 
-    //Converts a vector in pixels to physic world measurement
-    export function vectorPixelToMeters(vPixels)
-    {
-        return new b2Vec2(vPixels.x / worldScale, vPixels.y / worldScale);
-    }
+    /**
+     * Vector conversion helpers
+     */
+    vectorPixelToMeters(vPixels: typeof b2Vec2): typeof b2Vec2 {
+        return new b2Vec2(vPixels.x / this.worldScale, vPixels.y / this.worldScale);
+    },
 
-    //Converts a vector in physic world measurement to pixels;
-    export function vectorMetersToPixels(vMeters)
-    {
-        return new b2Vec2(vMeters.x * worldScale, vMeters.y * worldScale);
-    }
+    vectorMetersToPixels(vMeters: b2Vec2): b2Vec2 {
+        return new b2Vec2(vMeters.x * this.worldScale, vMeters.y * this.worldScale);
+    },
 
-    export function bodyToDrawingPixelCoordinates(body)
-    {
-        var pos = body.GetPosition();
-        var radius = body.GetFixtureList().GetShape().GetRadius();
-
-        pos.x -= radius;
-        pos.y -= radius;
-
-        return Physics.vectorMetersToPixels(pos);
-
-    }
-}
-
-
-class BodyDataPacket
-{
-
-    pX;
-    pY;
-
-    constructor(body)
-    {
-        if (typeof body == "string")
-        {
-            this.fromJSON(body);
-        } else
-        {
-            this.pX = body.GetPosition().x;
-            this.pY = body.GetPosition().y;
-        }
-    }
-
-    override(body)
-    {
-        
-        if (body)
-        {
-            body.SetPosition(new b2Vec2(this.pX, this.pY));
-        }
-    }
-
-    toJSON()
-    {
-        if (Settings.NETWORKED_GAME_QUALITY_LEVELS.HIGH == Settings.NETWORKED_GAME_QUALITY)
-        {
-              return (Math.floor(this.pX * 10000) / 10000) + "," + (Math.floor(this.pY * 10000) / 10000);
-
-        } else if (Settings.NETWORKED_GAME_QUALITY_LEVELS.MEDIUM == Settings.NETWORKED_GAME_QUALITY)
-        {
-            return (Math.floor(this.pX * 1000) / 1000) + "," + (Math.floor(this.pY * 1000) / 1000);
-        }
-        else if (Settings.NETWORKED_GAME_QUALITY_LEVELS.LOW == Settings.NETWORKED_GAME_QUALITY)
-        {
-            return (Math.floor(this.pX * 100) / 100) + "," + (Math.floor(this.pY * 100) / 100);
-        }
-
-    }
-
-    fromJSON(data: string)
-    {
-        var v = data.split(",");
-        this.pX = parseFloat(v[0]);
-        this.pY = parseFloat(v[1]);
-    }
-}
-
-
-class PhysiscsDataPacket
-{
-    bodyDataPackets: BodyDataPacket[];
-
-
-    constructor(bodies)
-    {
-        this.bodyDataPackets = [];
-
-        if (typeof bodies == "string")
-        {
-            this.fromJSON(bodies);
-        } else
-        {
-            for (var b in bodies)
-            {
-                this.bodyDataPackets.push(new BodyDataPacket(bodies[b]));
-            }
-        }
-    }
-
-    override(bodies)
-    {
-        for (var b in this.bodyDataPackets)
-        {
-            this.bodyDataPackets[b].override(bodies[b]);
-        }
-    }
-
-    toJSON()
-    {
-        var data = "";
-        for (var b in this.bodyDataPackets)
-        {
-            data += this.bodyDataPackets[b].toJSON() + ":"
-        }
-
-        return data;
-    }
-
-    fromJSON(data: string)
-    {
-        var vectors = data.split(":");
-        for (var i in vectors)
-        {
-            if (vectors[i] != "")
-            {
-                this.bodyDataPackets.push(new BodyDataPacket(vectors[i]));
-            }
-        }
-
-    }
-}
+    bodyToDrawingPixelCoordinates(body: typeof b2Body): typeof b2Vec2 {
+        const pos = body.GetPosition();
+        const radius = body.GetFixtureList().GetShape().GetRadius();
+        return this.vectorMetersToPixels(new b2Vec2(pos.x - radius, pos.y - radius));
+    },
+  };

@@ -2,16 +2,21 @@
  * NinjaRope.js
  *
  *  License: Apache 2.0
- *  author:  Ciarán McCann
+ *  author:  Ciarï¿½n McCann
  *  url: http://www.ciaranmccann.me/
+ *  @updated-by qwenoola
+ *  @update-date: 2025/06/14
  */
-///<reference path="../system/Graphics.ts"/>
-///<reference path="../system/AssetManager.ts"/>
-///<reference path="../system/Physics.ts"/>
-///<reference path="../environment/Terrain.ts"/>
-///<reference path="BaseWeapon.ts"/>
 
-class NinjaRope extends BaseWeapon
+import { Graphics } from "../system/Graphics"
+import { AssetManager } from "../system/AssetManager"
+import { Physics } from "../system/Physics"
+import { Terrain } from "../environment/Terrain"
+import { BaseWeapon } from "BaseWeapon"
+import { b2BodyDef, b2FixtureDef, b2CircleShape, b2Body } from '../types/box2d-imports';
+import { Sprite } from "../animation/Sprite"
+
+export class NinjaRope extends BaseWeapon
 {
     ropeJoints;
     ropeNots;
@@ -21,7 +26,7 @@ class NinjaRope extends BaseWeapon
 
     ropeTip: Sprite;
 
-    constructor (ammo)
+    constructor (ammo: number)
     {
         super(
            "Ninja Rope",
@@ -280,7 +285,7 @@ class NinjaRope extends BaseWeapon
 
                     var dir = p2.Copy();
                     dir.Subtract(p1);
-                    var angle = Utilies.vectorToAngle(dir) + Utilies.toRadians(-90);
+                    var angle = Utils.vectorToAngle(dir) + Utils.toRadians(-90);
 
                     ctx.save();
                     ctx.translate(p1.x, p1.y);

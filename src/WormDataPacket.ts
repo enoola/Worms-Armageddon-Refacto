@@ -7,6 +7,7 @@
  */
 
 import { Worm } from "../Worm" 
+import { b2Vec2 } from "./types/box2d-imports";
 
 
 export class WormDataPacket {
