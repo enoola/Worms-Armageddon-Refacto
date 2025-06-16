@@ -7,31 +7,26 @@
  *  author:  Ciar�n McCann
  *  url: http://www.ciaranmccann.me/
  */
-///<reference path="Sprite.ts"/>
-///<reference path="SpriteDefinitions.ts"/>
-///<reference path="Particle.ts"/>
-///<reference path="ParticleEffect.ts"/>
-///<reference path="../system/AssetManager.ts"/>
-///<reference path="../system/Utils.ts"/>
-///<reference path="../system/Timer.ts" />
-///<reference path="../Settings.ts" />
+
+import { Utils } from "@/system/Utils";
+import { ParticleEffect } from "./ParticleEffect";
 
 class EffectsManager
 {
 
-    particleEffects;
+    particleEffects: ParticleEffect[];
 
     constructor ()
     {
         this.particleEffects = [];
     }
 
-    add(effect)
+    add(effect: ParticleEffect) : void
     {
         this.particleEffects.push(effect);
     }
 
-    stopAll()
+    stopAll() : void
     {
         for (var i = this.particleEffects.length - 1; i >= 0; i--)
         {
@@ -39,7 +34,7 @@ class EffectsManager
         }
     }
 
-    draw(ctx)
+    draw(ctx: CanvasRenderingContext2D): void
     {
         for (var i = this.particleEffects.length - 1; i >= 0; i--)
         {
@@ -47,7 +42,7 @@ class EffectsManager
         }
     }
 
-    areAllAnimationsFinished()
+    areAllAnimationsFinished() : boolean
     {
         return (this.particleEffects.length == 0);
     }
@@ -61,7 +56,7 @@ class EffectsManager
             //TODO deleting while looping??
             if (this.particleEffects[i].finished == true)
             {
-                Utilies.deleteFromCollection(this.particleEffects, i);
+                Utils.deleteFromCollection(this.particleEffects, i);
             }
 
         }

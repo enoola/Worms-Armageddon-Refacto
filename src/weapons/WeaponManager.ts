@@ -7,22 +7,22 @@
  *  author:  Ciar�n McCann
  *  url: http://www.ciaranmccann.me/
  */
-import { BaseWeaponManager } from "../system/BaseWeaponManager.ts"
-import { AssetManager } from "../system/AssetManager.ts"
-import { Physics } from "../system/Physics.ts"
-import { Sprite } from "../animation/Sprite.ts"
-import { Drill } from "../weapons/Drill.ts"
-import { HolyGrenade } from "../weapons/HolyGrenade.ts"
-import { HandGrenade } from "../weapons/HandGrenade.ts"
-import { Dynamite } from "../weapons/Dynamite.ts"
-import { NijaRope } from "../weapons/NinjaRope.ts"
-import { JetPack } from "../weapons/JetPack.ts"
-import { RayWeapon } from "../weapons/RayWeapon.ts"
-import { Shotgun } from "../weapons/Shotgun.ts
-import { Minigun } from "../weapons/Minigun.ts"
-import { LandMine } from "../weapons/LandMine.ts"
-import { Blowtorch } from "../weapons/Blowtorch.ts"
-import { ProjectileWeapon } from "../weapons/ProjectileWeapon.ts"
+import { BaseWeaponManager } from "../system/BaseWeaponManager"
+import { AssetManager } from "../system/AssetManager"
+import { Physics } from "../system/Physics"
+import { Sprite } from "../animation/Sprite"
+import { Drill } from "../weapons/Drill"
+import { HolyGrenade } from "../weapons/HolyGrenade"
+import { HandGrenade } from "../weapons/HandGrenade"
+import { Dynamite } from "../weapons/Dynamite"
+import { NinjaRope } from "../weapons/NinjaRope"
+import { JetPack } from "../weapons/JetPack"
+import { RayWeapon } from "../weapons/RayWeapon"
+import { Shotgun } from "../weapons/Shotgun"
+import { Minigun } from "../weapons/Minigun"
+import { LandMine } from "../weapons/LandMine"
+import { Blowtorch } from "../weapons/Blowtorch"
+import { ProjectileWeapon } from "../weapons/ProjectileWeapon"
 
 
 class WeaponManager
@@ -54,7 +54,7 @@ class WeaponManager
     }
 
  
-    checkWeaponHasAmmo(weaponIndex)
+    checkWeaponHasAmmo(weaponIndex: number)
     {
         if (this.weaponsAndTools[weaponIndex].ammo)
         {
@@ -69,7 +69,7 @@ class WeaponManager
         return this.weaponsAndTools[this.currentWeaponIndex];
     }
 
-    setCurrentWeapon(index)
+    setCurrentWeapon(index: number)
     {
         //Allows the user to switch weapon once its active if its a jetpack or ninjia rope
         if (this.getCurrentWeapon().getIsActive() == false || this.getCurrentWeapon() instanceof JetPack || this.getCurrentWeapon() instanceof NinjaRope)

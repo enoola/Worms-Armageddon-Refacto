@@ -1,95 +1,96 @@
-"use strict";
+import { Physics } from "@/system/Physics";
+import { GameInstance } from "./GameInstance";
 /**
- * GameStateManager.js
+ * GameStateManager
  *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
+ * Manages game state, turn switching, and win conditions
+ * So I would like GameInstance to be accessible from GameStateManager
  */
-///<reference path="system/Camera.ts"/>
-///<reference path="system/Graphics.ts"/>
-///<reference path="system/AssetManager.ts"/>
-///<reference path="system/Physics.ts"/>
-///<reference path="Worm.ts"/>
-///<reference path="system/Utilies.ts"/>
-///<reference path="system/Timer.ts" />
-///<reference path="Settings.ts" />
-class GameStateManager {
+export class GameStateManager {
     constructor() {
         this.nextTurnTrigger = false;
         this.currentPlayerIndex = 0;
+        this.players = [];
         this.isStarted = false;
         this.physicsWorldSettled = false;
     }
+    /**
+     * Initialize game state with players
+     */
     init(players) {
         this.players = players;
         this.isStarted = true;
     }
-    tiggerNextTurn() {
-        // Stop all game info based effects, eg bouncing arrow over worms head
-        GameInstance.miscellaneousEffects.stopAll();
+    /**
+     * Triggers the next turn
+     */
+    triggerNextTurn() {
+        // Stop all game info effects (e.g., bouncing arrows)
+        GameInstance.getInstance().miscellaneousEffects.stopAll();
         this.nextTurnTrigger = true;
     }
-    //When the timer says its time for next turn, then we need
-    // to deactivate all non-time based weapons, such as jetpacks and ropes etc.
-    timerTiggerNextTurn() {
-        GameInstance.wormManager.deactivedAllNonTimeBasedWeapons();
-        this.tiggerNextTurn();
+    /**
+     * Handles turn switching when timer ends
+     */
+    timerTriggerNextTurn() {
+        GameInstance.getInstance().wormManager.deactivateAllNonTimeBasedWeapons();
+        this.triggerNextTurn();
     }
-    hasNextTurnBeenTiggered() {
+    /**
+     * Check if a turn switch has been triggered
+     */
+    hasNextTurnBeenTriggered() {
         return this.nextTurnTrigger;
     }
-    // Is everyone ready for the next turn, animations, the worms etc?
+    /**
+     * Check if the game is ready for the next turn
+     */
     readyForNextTurn() {
-        // EVENTS which tigger next go - Eg: Modify this.nextTurnTrigger
-        // firing of player weapon in some cases
-        // Using up the allowed shots/use of a weapon in a turn.
-        // player hurting themsleves
-        // turn time up 
         if (this.nextTurnTrigger) {
-            // REQUIRED STATES 
-            // animations finished, which include particle effects.
-            // deaths if any
-            // players health reduced if any
-            // all players most be stationary.
-            if (GameInstance.particleEffectMgmt.areAllAnimationsFinished() && GameInstance.wormManager.areAllWormsReadyForNextTurn()) {
+            // Check animations, deaths, and player stability
+            if (GameInstance.getInstance().particleEffectMgmt.areAllAnimationsFinished() &&
+                GameInstance.getInstance().wormManager.areAllWormsReadyForNextTurn()) {
                 this.nextTurnTrigger = false;
                 return true;
             }
         }
         return false;
     }
+    /**
+     * Returns the current player
+     */
     getCurrentPlayer() {
         return this.players[this.currentPlayerIndex];
     }
-    // Selects the next players to have a go and selects the next worm they use
+    /**
+     * Selects the next player and worm
+     * Returns player ID or null if team is dead
+     */
     nextPlayer() {
-        //Networked games need this
         this.nextTurnTrigger = false;
-        if (this.currentPlayerIndex + 1 == this.players.length) {
+        if (this.currentPlayerIndex + 1 === this.players.length) {
             this.currentPlayerIndex = 0;
         }
         else {
             this.currentPlayerIndex++;
         }
-        //If the team is all dead return -1 to sign move to next player.
-        if (this.getCurrentPlayer().getTeam().getPercentageHealth() <= 0) {
+        const currentTeam = this.getCurrentPlayer().getTeam();
+        if (currentTeam.getPercentageHealth() <= 0) {
             return null;
         }
-        this.getCurrentPlayer().getTeam().nextWorm();
-        GameInstance.camera.cancelPan();
-        GameInstance.camera.panToPosition(Physics.vectorMetersToPixels(this.getCurrentPlayer().getTeam().getCurrentWorm().body.GetPosition()));
-        //gives back the server id tag
+        currentTeam.nextWorm();
+        GameInstance.getInstance().camera.cancelPan();
+        const worm = currentTeam.getCurrentWorm();
+        const position = Physics.vectorMetersToPixels(worm.body.GetPosition());
+        GameInstance.getInstance().camera.panToPosition(position);
         return this.getCurrentPlayer().id;
     }
+    /**
+     * Checks for a winning player
+     */
     checkForWinner() {
-        var playersStillLive = [];
-        for (var i = this.players.length - 1; i >= 0; --i) {
-            if (this.players[i].getTeam().areAllWormsDead() == false) {
-                playersStillLive.push(this.players[i]);
-            }
-        }
-        if (playersStillLive.length == 1) {
+        const playersStillLive = this.players.filter((player) => !player.getTeam().areAllWormsDead());
+        if (playersStillLive.length === 1) {
             return playersStillLive[0];
         }
         return null;

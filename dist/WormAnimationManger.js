@@ -1,3 +1,6 @@
+import { Physics } from "./system/Physics";
+import { Sprites } from "./animation/SpriteDefinitions";
+import { Timer } from "./system/Timer";
 export class WormAnimationManger {
     constructor(worm) {
         this.worm = worm;

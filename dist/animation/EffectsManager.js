@@ -1,4 +1,3 @@
-"use strict";
 /**
  * ParticleEffectManager.js
  * This simply manages an arrray of particle effects, updates and draws them
@@ -8,14 +7,7 @@
  *  author:  Ciar�n McCann
  *  url: http://www.ciaranmccann.me/
  */
-///<reference path="Sprite.ts"/>
-///<reference path="SpriteDefinitions.ts"/>
-///<reference path="Particle.ts"/>
-///<reference path="ParticleEffect.ts"/>
-///<reference path="../system/AssetManager.ts"/>
-///<reference path="../system/Utils.ts"/>
-///<reference path="../system/Timer.ts" />
-///<reference path="../Settings.ts" />
+import { Utils } from "@/system/Utils";
 class EffectsManager {
     constructor() {
         this.particleEffects = [];
@@ -41,7 +33,7 @@ class EffectsManager {
             this.particleEffects[i].update();
             //TODO deleting while looping??
             if (this.particleEffects[i].finished == true) {
-                Utilies.deleteFromCollection(this.particleEffects, i);
+                Utils.deleteFromCollection(this.particleEffects, i);
             }
         }
     }

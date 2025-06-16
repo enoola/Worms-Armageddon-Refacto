@@ -9,8 +9,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "moduleResolution": "node",
-    "types": ["box2d"],
-    "typeRoots": ["./types", "./node_modules/@types"],
+    "typeRoots": ["./node_modules/@types", "./node_modules/@box2d"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

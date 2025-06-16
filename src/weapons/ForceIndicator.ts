@@ -1,123 +1,150 @@
+import { b2Vec2 } from "@box2d/core";
+import { Worm } from "@/Worm";
+import { Physics } from "@/system/Physics";
+import { Sprite } from "@/animation/Sprite";
+import { AssetManager } from "@/system/AssetManager";
+import { Utils } from "@/system/Utils";
+import { Sprites } from "@/animation/SpriteDefinitions";
+
 /**
- * ForceIndicator.js
- *
- *  License: Apache 2.0
- *  author:  Ciarán McCann
- *  url: http://www.ciaranmccann.me/
+ * ForceIndicator class
+ * 
+ * Visualizes and manages the force meter for throwables like grenades
  */
-///<reference path="../animation/Sprite.ts"/>
+export class ForceIndicator {
+    private forcePercentage = 1;
+    private forceMax: number;
+    private sprite: Sprite;
+    private needReRender = true;
+    private renderCanvas: HTMLCanvasElement | null = null;
 
-class ForceIndicator
-{
-    private forcePercentage;
-    private forceRateIncrease;
-    private forceMax;
-    private  sprite: Sprite;
-    private  needReRender: bool;
-    private  renderCanvas;
-
-    constructor(maxForceForWeapon)
-    {
-        this.forceMax = maxForceForWeapon; // Max force at which worms can throw
-        this.forcePercentage = 1;
+    constructor(forceMax: number) {
+        this.forceMax = forceMax;
         this.sprite = new Sprite(Sprites.particleEffects.blob);
         this.needReRender = true;
-        this.renderCanvas = null;
     }
 
-    // Some weapons don't require a force build up meter
-    isRequired()
-    {
-        return this.forceMax != 0;
+    /**
+     * Some weapons don't require a force indicator
+     */
+    isRequired(): boolean {
+        return this.forceMax !== 0;
     }
 
+    /**
+     * Draws the force indicator near the worm
+     */
+    draw(ctx: CanvasRenderingContext2D, worm: Worm): void {
+        if (!this.isCharging() || !this.isRequired()) return;
 
-    draw(ctx, worm: Worm)
-    {
-        if (this.isCharging() && this.isRequired())
-        {
+        if (this.needReRender) {
+            const spriteHeight = this.sprite.getFrameHeight();
+            const width = this.sprite.getFrameWidth();
+            const height = 200;
 
-            if (this.needReRender)
-            {
-                this.renderCanvas = Graphics.preRenderer.render(function (context) =>
-                {
-                    // if(this.renderCanvas == null)
-                     //context.fillRect(0, 0, 400, 400);
+            this.renderCanvas = document.createElement("canvas");
+            this.renderCanvas.width = width;
+            this.renderCanvas.height = height;
 
-                    this.sprite.draw(context, 0, (this.forcePercentage / 100) * 100);
-                    this.needReRender = false;
+            const rctx = this.renderCanvas.getContext("2d");
+            if (!rctx) return;
 
-                }, this.sprite.getFrameWidth(), 200, this.renderCanvas);
+            rctx.clearRect(0, 0, width, height);
+
+            // Render force indicator
+            const framesToShow = Math.min(this.sprite.getTotalFrames(), 100);
+            for (let i = 0; i < (this.forcePercentage / 100) * framesToShow; i++) {
+                this.sprite.setCurrentFrame(i);
+                this.sprite.draw(rctx, 0, height - (i * 2));
             }
 
-
-            var radius = worm.fixture.GetShape().GetRadius() * Physics.worldScale;
-            var wormPos = Physics.vectorMetersToPixels(worm.body.GetPosition().Copy());
-            var targetDir = worm.target.getTargetDirection().Copy();
-            targetDir.Multiply(16);
-            targetDir.Add(wormPos);
-
-            ctx.save();
-
-            ctx.translate(
-                targetDir.x,
-                targetDir.y
-            )
-
-             
-            //TODO - Why do I put -90 in here? Is it that my target is wrong? Is it somthing to do with canvas corrdianate system. Hmm ask Ken.
-            //TODO No is cause of the canvas corrdinate system, oh yea.
-            ctx.rotate(Utilies.vectorToAngle(worm.target.getTargetDirection().Copy()) + Utilies.toRadians(-90));
-
-            ctx.drawImage(this.renderCanvas, -radius,  -radius, this.renderCanvas.width, this.renderCanvas.height);
-            ctx.restore();
+            this.needReRender = false;
         }
+
+        if (!this.renderCanvas) return;
+
+        const radius = worm.fixture?.GetShape()?.GetRadius() * Physics.worldScale;
+        const wormPos = Physics.vectorMetersToPixels(worm.body?.GetPosition());
+        const targetDir = worm.target?.getTargetDirection()?.Clone() || new b2Vec2(0, 0);
+
+        targetDir.SelfMulScalar(16);
+        targetDir.SelfAdd(wormPos);
+
+        ctx.save();
+        ctx.translate(targetDir.x, targetDir.y);
+        ctx.rotate(Utils.vectorToAngle(worm.target.getTargetDirection().Clone()) + Utils.toRadians(-90));
+        ctx.drawImage(this.renderCanvas, -radius, -radius, this.renderCanvas.width, this.renderCanvas.height);
+        ctx.restore();
     }
 
-    charge(rate)
-    {
-        if (this.isRequired())
-        {
-            AssetManager.getSound("THROWPOWERUP").play();
-            this.forcePercentage += rate;
-            this.sprite.setCurrentFrame(this.sprite.getCurrentFrame() + 0.4);
-            this.needReRender = true;
+    /**
+     * Increases force percentage while charging
+     */
+    charge(rate: number): boolean {
+        if (!this.isRequired()) return false;
 
-            if (this.forcePercentage > 100)
-            {
-                this.forcePercentage = 100;
-                return true;
-            }
+        AssetManager.getSound("THROWPOWERUP").play();
+        this.forcePercentage += rate;
+        this.sprite.setCurrentFrame(this.sprite.getCurrentFrame() + 0.4);
+        this.needReRender = true;
+
+        if (this.forcePercentage > 100) {
+            this.forcePercentage = 100;
+            return true;
         }
+
+        return false;
     }
 
-    isCharging()
-    {
+    /**
+     * Returns true if currently charging
+     */
+    isCharging(): boolean {
         return this.forcePercentage > 1;
     }
 
-    setMaxForce(forceScalerMax)
-    {
+    /**
+     * Sets max force limit
+     */
+    setMaxForce(forceScalerMax: number): void {
         this.forceMax = forceScalerMax;
     }
 
-    reset()
-    {
-        if (this.isRequired() && this.forcePercentage > 1)
-        {
-            this.forcePercentage = 1;
-            AssetManager.getSound("THROWPOWERUP").pause();
-            AssetManager.getSound("THROWRELEASE").play();
-            this.renderCanvas.getContext('2d').clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
+    /**
+     * Resets the force indicator
+     */
+    reset(): void {
+        if (!this.isRequired()) return;
 
-            //Used to reset the sprite
-            this.sprite.currentFrameY = 0;
+        this.forcePercentage = 1;
+        AssetManager.getSound("THROWPOWERUP").pause();
+        AssetManager.getSound("THROWRELEASE").play();
+
+        const renderCtx = this.renderCanvas?.getContext("2d");
+        if (renderCtx) {
+            renderCtx.clearRect(0, 0, this.renderCanvas!.width, this.renderCanvas!.height);
         }
+
+        this.sprite.setCurrentFrame(0);
     }
 
-    getForce()
-    {
+    /**
+     * Returns force as a scalar (0 to forceMax)
+     */
+    getForce(): number {
         return (this.forcePercentage / 100) * this.forceMax;
     }
-
 }
+
+/*
+* usage example:
+import { ForceIndicator } from "@/weapons/ForceIndicator";
+import { Worm } from "@/animation/Worm";
+
+const worm = new Worm(Sprites.worms.idle1);
+const forceIndicator = new ForceIndicator(50); // Max force = 50
+
+forceIndicator.draw(context, worm);
+forceIndicator.charge(2);
+console.log("Current force:", forceIndicator.getForce());
+*/

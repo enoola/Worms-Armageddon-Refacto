@@ -18,7 +18,8 @@ export interface MapDefinition {
 }
 
 // Map Class - Represents an individual map
-export class Map {
+//rename to WMap
+export class WMap {
     private mapDef: MapDefinition;
     private currentSpawn = 0;
 
@@ -28,10 +29,10 @@ export class Map {
 
     getNextSpawnPoint(): SpawnPoint {
         var aSpawnPoint: SpawnPoint|undefined;
-        aSpawnPoint = Utils.pickUnique(this.mapDef.spawnPionts, "spawnPoints")
-        ==undefined ? {x=42,y=42}:aSpawnPoint;
+        aSpawnPoint = Utils.pickUnique(this.mapDef.spawnPionts, "spawnPoints");
+
         if (!aSpawnPoint)
-            aSpawnPoint.x=42, y=42 }
+            aSpawnPoint = {x:42, y:42 };
         return ( aSpawnPoint )
     }
 
@@ -46,7 +47,7 @@ export class Map {
     getName(): string {
         return this.mapDef.name;
     }
-}
+};
 
 // Predefined Maps
 export namespace Maps {

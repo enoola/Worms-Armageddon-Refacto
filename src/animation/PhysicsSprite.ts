@@ -1,58 +1,42 @@
+import { b2Vec2 } from "@box2d/core";
+import { Sprite } from "@/animation/Sprite";
+import { SpriteDefinition } from "@/animation/SpriteDefinitions";
+
 /**
- * PhysicsSprite.js
- * This is handies sprite that also need to animate interm of movement and physics
- *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
+ * PhysicsSprite
+ * 
+ * A sprite that also moves based on physics (velocity, acceleration)
  */
-///<reference path="Sprite.ts"/>
-///<reference path="SpriteDefinitions.ts"/>
-///<reference path="../system/AssetManager.ts"/>
-///<reference path="../system/Utils.ts"/>
-///<reference path="../system/Timer.ts" />
-///<reference path="../Settings.ts" />
-///<reference path="../system/Physics.ts" />
+export class PhysicsSprite extends Sprite {
+    velocity: b2Vec2;
+    position: b2Vec2;
+    acc: b2Vec2;
 
-class PhysicsSprite extends Sprite
-{
-    velocity;
-    position;
-    acc;
-
-    constructor (initalPos, initalVelocity, spriteDef)
-    {
+    constructor(initialPos: b2Vec2, initialVelocity: b2Vec2, spriteDef: SpriteDefinition) {
         super(spriteDef);
-        this.position = initalPos;
-        this.velocity = initalVelocity;
-       
+        this.position = initialPos.Clone();
+        this.velocity = initialVelocity.Clone();
+        this.acc = new b2Vec2(0, 0);
     }
 
-    draw(ctx,x = this.position.x, y  = this.position.y)
-    {
-        super.draw(ctx, x,y);
+    draw(ctx: CanvasRenderingContext2D, x: number = this.position.x, y: number = this.position.y): void {
+        super.draw(ctx, x, y);
     }
 
-    physics()
-    {
-        var t = 0.016;
-        var g = new b2Vec2(0, 9.81);
+    physics(): void {
+        const t = 0.016; // Fixed time step (approx 60fps)
+        const g = new b2Vec2(0, 9.81); // Gravity
 
-        var at = g.Copy();
+        const at = g.Clone();
         this.velocity.Add(at);
 
-        var vt = this.velocity.Copy();
+        const vt = this.velocity.Clone();
         vt.Multiply(t);
         this.position.Add(vt);
-
     }
 
-    update()
-    {
+    update(): void {
         this.physics();
         super.update();
     }
-
-
-
 }

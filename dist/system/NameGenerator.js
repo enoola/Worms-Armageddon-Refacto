@@ -1,4 +1,3 @@
-"use strict";
 /**
  * NameGenerator.js
  * The name generator gets a list of famous programmers from wikipeda and randomly assigns them to worms
@@ -7,7 +6,8 @@
  *  author:  Ciar�n McCann
  *  url: http://www.ciaranmccann.me/
  */
-///<reference path="Utilies.ts" />
+///<reference path="Utils.ts" />
+import { Utils } from "./Utils";
 //TODO This is Kinda redundent
 var NameGenerator;
 (function (NameGenerator) {
@@ -22,7 +22,8 @@ var NameGenerator;
     //TODO Remove live link to wikipead if I put this live
     var nameDataSrc = "http://en.wikipedia.org/w/api.php?format=json&action=query&titles=List_of_programmers&prop=revisions&rvprop=content";
     // var nameDataSrc = "wikilocal.html";
-    function init(callback) {
+    //export function init(callback)
+    function init() {
         //$.ajax({
         //    url: nameDataSrc,
         //    dataType: 'jsonp',
@@ -44,7 +45,7 @@ var NameGenerator;
     function randomName() {
         if (randomNamesList.length == 0)
             return "Error with genertor";
-        return Utilies.pickUnqine(randomNamesList, "names");
+        return Utils.pickUnique(randomNamesList, "names");
     }
     NameGenerator.randomName = randomName;
 })(NameGenerator || (NameGenerator = {}));

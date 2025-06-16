@@ -1,10 +1,11 @@
-import { Drill } from "../weapons/Drill.ts";
-import { HolyGrenade } from "../weapons/HolyGrenade.ts";
-import { HandGrenade } from "../weapons/HandGrenade.ts";
-import { Dynamite } from "../weapons/Dynamite.ts";
-import { JetPack } from "../weapons/JetPack.ts";
-import { Shotgun } from "../weapons/Shotgun.ts;
-import { Minigun } from "../weapons/Minigun.ts";
+import { Drill } from "../weapons/Drill";
+import { HolyGrenade } from "../weapons/HolyGrenade";
+import { HandGrenade } from "../weapons/HandGrenade";
+import { Dynamite } from "../weapons/Dynamite";
+import { NinjaRope } from "../weapons/NinjaRope";
+import { JetPack } from "../weapons/JetPack";
+import { Shotgun } from "../weapons/Shotgun";
+import { Minigun } from "../weapons/Minigun";
 class WeaponManager {
     constructor() {
         this.weaponsAndTools =

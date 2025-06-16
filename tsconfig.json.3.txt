@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+      "target": "ES2016",
+      "module": "ESNext",
+      "strict": true,
+      "moduleResolution": "node",
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "outDir": "./dist"
+    },
+    "include": ["src/**/*", "src/index.ts"],
+    "exclude": ["*old"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+}

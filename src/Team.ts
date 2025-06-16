@@ -1,10 +1,10 @@
 import { Worm } from "./animation/Worm";
 import { WeaponManager } from "./weapons/WeaponManager";
 import { BounceArrow } from "./animation/BounceArrow";
-import { Utilies } from "./system/Utils";
+import { Utils } from "./system/Utils";
 import { Game } from "./Game";
 import { Physics } from "./system/Physics";
-import { Sprites } from "./animation/SpriteDefinitions";
+import { SpriteDefinition } from "./animation/SpriteDefinitions";
 import { AssetManager } from "./system/AssetManager";
 
 export class Team {
@@ -24,8 +24,8 @@ export class Team {
     constructor(gameInstance: Game, playerId: number) {
         this.gameInstance = gameInstance;
         
-        this.color = Utilies.pickUnqine(["#FA6C1D", "#12AB00", "#B46DD2", "#B31A35", "#23A3C6", "#9A4C44"], "colors");
-        this.graveStone = Utilies.pickUnqine(["grave1", "grave2", "grave3", "grave4", "grave5", "grave6"], "gravestones");
+        this.color = Utils.pickUnique(["#FA6C1D", "#12AB00", "#B46DD2", "#B31A35", "#23A3C6", "#9A4C44"], "colors");
+        this.graveStone = Utils.pickUnique(["grave1", "grave2", "grave3", "grave4", "grave5", "grave6"], "gravestones");
 
         this.name = "Team " + Team.teamCount;
         this.teamId = playerId;

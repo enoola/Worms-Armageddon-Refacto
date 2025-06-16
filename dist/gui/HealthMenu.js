@@ -1,25 +1,22 @@
-"use strict";
-/**
- * HealthMenu.js
- *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
- */
-///<reference path="../main.ts.old"/>
-///<reference path="../Game.ts"/>
-///<reference path="../Settings.ts"/>
-///<reference path="../system/AssetManager.ts"/>
-///<reference path="../system/Controls.ts"/>
-class HealthMenu {
+import { Settings } from "@/Settings";
+import $ from "jquery";
+export class HealthMenu {
     constructor(players) {
-        var html = "";
-        for (var p in players) {
-            var team = players[p].getTeam();
-            html += "<li><span> " + team.name + " </span><img src=" +
-                Settings.REMOTE_ASSERT_SERVER + "data/images/Ireland.png> " +
-                "<span id='" + team.teamId + "' class=health style=width:" + team.getPercentageHealth() +
-                "%;background:" + team.color + "  ></span></li>";
+        this.players = players;
+        let html = "";
+        // Use Object.entries for clearer iteration
+        for (const [key, player] of Object.entries(players)) {
+            const team = player.getTeam();
+            html += `
+                <li>
+                    <span>${team.name}</span>
+                    <img src="${Settings.REMOTE_ASSERT_SERVER}data/images/Ireland.png">
+                    <span 
+                        id="${team.teamId}" 
+                        class="health" 
+                        style="width: ${team.getPercentageHealth()}%; background: ${team.color}"
+                    ></span>
+                </li>`;
         }
         $('.healthMenu').html(html);
         this.hide();
@@ -31,8 +28,8 @@ class HealthMenu {
         $('.healthMenu').hide();
     }
     update(teamRef) {
-        $('#' + teamRef.teamId).animate({
-            width: teamRef.getPercentageHealth() + "%",
+        $(`#${teamRef.teamId}`).animate({
+            width: `${teamRef.getPercentageHealth()}%`
         }, 300);
     }
 }

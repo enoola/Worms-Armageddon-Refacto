@@ -1,52 +1,43 @@
-/**
- * HealthMenu.js
- *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
- */
-///<reference path="../main.ts.old"/>
-///<reference path="../Game.ts"/>
-///<reference path="../Settings.ts"/>
-///<reference path="../system/AssetManager.ts"/>
-///<reference path="../system/Controls.ts"/>
-class HealthMenu
-{
+import { Settings } from "@/Settings";
+import { Game } from "@/Game";
+import { Team } from "@/Team"; // Assuming Team class exists in Team.ts
+import $ from "jquery";
 
-    constructor (players)
-    {
-        var html = "";
+export class HealthMenu {
+    constructor(private players: Record<string, { getTeam(): Team }>) {
+        let html = "";
 
-        for (var p in players)
-        {
-            var team : Team = players[p].getTeam();
+        // Use Object.entries for clearer iteration
+        for (const [key, player] of Object.entries(players)) {
+            const team: Team = player.getTeam();
 
-            html +=  "<li><span> " + team.name + " </span><img src="+ 
-                    Settings.REMOTE_ASSERT_SERVER  +"data/images/Ireland.png> " +
-                    "<span id='" +team.teamId+ "' class=health style=width:" + team.getPercentageHealth() + 
-                    "%;background:" + team.color + "  ></span></li>";
-
+            html += `
+                <li>
+                    <span>${team.name}</span>
+                    <img src="${Settings.REMOTE_ASSERT_SERVER}data/images/Ireland.png">
+                    <span 
+                        id="${team.teamId}" 
+                        class="health" 
+                        style="width: ${team.getPercentageHealth()}%; background: ${team.color}"
+                    ></span>
+                </li>`;
         }
+
         $('.healthMenu').html(html);
         this.hide();
-
     }
 
-    show()
-    {
+    show(): void {
         $('.healthMenu').show();
     }
 
-    hide()
-    {
+    hide(): void {
         $('.healthMenu').hide();
     }
 
-    update(teamRef : Team)
-    {       
-        $('#' + teamRef.teamId).animate({
-            width: teamRef.getPercentageHealth() + "%",
+    update(teamRef: Team): void {
+        $(`#${teamRef.teamId}`).animate({
+            width: `${teamRef.getPercentageHealth()}%`
         }, 300);
     }
-
 }

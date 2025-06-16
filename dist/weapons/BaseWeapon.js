@@ -1,31 +1,76 @@
-//import { SpriteDefinitions } from "../animation/SpriteDefinitions.ts"
-import { AssetManager } from "../system/AssetManager.ts";
-import { ForceIndicator } from "ForceIndicator.ts";
-class BaseWeapon {
+import { Settings } from "@/Settings";
+import { AssetManager } from "@/system/AssetManager";
+import { ForceIndicator } from "@/physics/ForceIndicator";
+import { Logger } from "@/utils/logger";
+/**
+ * BaseWeapon class
+ *
+ * Base class for all weapons in the game
+ */
+export class BaseWeapon {
     constructor(name, ammo, iconSprite, takeOutAnimation, takeAimAnimation) {
+        this.isActive = false;
+        this.requiresAiming = true;
         this.name = name;
         this.ammo = ammo;
         this.takeOutAnimations = takeOutAnimation;
         this.takeAimAnimations = takeAimAnimation;
-        //Setup the icon used in the weapon menu
+        // Load weapon icon
         this.iconImage = AssetManager.getImage(iconSprite.imageName);
-        this.requiresAiming = true;
-        this.setIsActive(false);
+        // Initialize force indicator
         this.forceIndicator = new ForceIndicator(0);
     }
+    /**
+     * Returns the current force indicator
+     */
     getForceIndicator() {
         return this.forceIndicator;
     }
-    getIsActive() { return this.isActive; }
-    setIsActive(val) { this.isActive = val; }
+    /**
+     * Get whether the weapon is active
+     */
+    getIsActive() {
+        return this.isActive;
+    }
+    /**
+     * Set whether the weapon is active
+     */
+    setIsActive(val) {
+        this.isActive = val;
+    }
+    /**
+     * Deactivates the weapon
+     */
     deactivate() {
+        this.setIsActive(false);
+        Logger.debug(`${this.name} was deactivated`);
     }
+    /**
+     * Activates the weapon on a worm
+     */
     activate(worm) {
-        this.setIsActive(true);
-        this.ammo--;
-        this.worm = worm;
-        Logger.debug(this.name + " was activated ");
+        if (this.ammo > 0 && !this.getIsActive()) {
+            this.setIsActive(true);
+            this.ammo--;
+            this.worm = worm;
+            if (Settings.DEVELOPMENT_MODE || Settings.LOG) {
+                Logger.debug(`${this.name} was activated`);
+            }
+        }
+        else {
+            AssetManager.getSound("cantclickhere").play();
+        }
     }
-    update() { }
-    draw(ctx) { }
+    /**
+     * Updates the weapon's logic
+     */
+    update() {
+        // To be overridden by subclasses
+    }
+    /**
+     * Draws the weapon
+     */
+    draw(ctx) {
+        // To be overridden by subclasses
+    }
 }

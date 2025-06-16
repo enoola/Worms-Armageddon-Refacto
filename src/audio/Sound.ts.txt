@@ -10,63 +10,12 @@
  *  author:  Ciarán McCann
  *  url: http://www.ciaranmccann.me/
  */
-//<reference path="../system/Utils.ts"/>
-import { Utils } from "../system/Utils";
-declare var webkitAudioContext: AudioContext | typeof AudioContext;
+///<reference path="../system/Utilies.ts"/>
+declare var webkitAudioContext; 
 
-export class Sound {
-    static context: AudioContext = new (webkitAudioContext || AudioContext)();
-
-    source;
-    buffer;
-    playing;
-
-    constructor(buffer: ArrayBuffer) {
-        this.buffer = buffer;
-        this.source = null;
-        this.playing = false;
-    }
-
-    load(): void {
-        const audioCtx = Sound.context;
-        audioCtx.decodeAudioData(this.buffer, (decodedData) => {
-            this.buffer = decodedData;
-        });
-    }
-
-    play(): void {
-        if (!this.playing) {
-            const audioCtx = Sound.context;
-            this.source = audioCtx.createBufferSource();
-            this.source.buffer = this.buffer;
-            this.source.connect(audioCtx.destination);
-            this.source.start();
-            this.playing = true;
-        }
-    }
-
-    pause(): void {
-        if (this.playing) {
-            const audioCtx = Sound.context;
-            this.source.stop();
-            this.playing = false;
-        }
-    }
-
-    stop(): void {
-        this.pause();
-    }
-
-    setVolume(volume: number): void {
-        if (this.playing && this.source.gain) {
-            this.source.gain.value = volume;
-        }
-    }
-}; 
-
-export class Sound
+class Sound
 {
-    static context: ;
+    static context;
 
     source;
     buffer;

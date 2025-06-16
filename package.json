@@ -1,24 +1,30 @@
 {
-  "name": "worms-refactor",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "@types/stats.js": "^0.17.4",
-    "box2d-wasm": "^7.0.0",
-    "typescript": "~5.8.3",
-    "vite": "^6.3.5",
-    "vite-tsconfig-paths": "^5.1.4"
-  },
-  "dependencies": {
-    "@box2d/core": "^0.11.0",
-    "@box2d/debug-draw": "^0.11.0",
-    "jquery": "^3.7.1",
-    "stats.js": "^0.17.0"
-  }
+    "name": "worms-refactor",
+    "private": true,
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview"
+    },
+    "main": "index.js",
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "devDependencies": {
+        "@types/jquery": "^3.5.32",
+        "ts-loader": "^9.5.2",
+        "typescript": "^5.8.3",
+        "vite": "^6.3.5",
+        "vite-tsconfig-paths": "^5.1.4"
+    },
+    "dependencies": {
+        "@box2d/core": "^0.11.0",
+        "@box2d/debug-draw": "^0.11.0",
+        "canvas": "^3.1.0",
+        "jquery": "^3.7.1",
+        "stats.js": "^0.17.0"
+    }
 }

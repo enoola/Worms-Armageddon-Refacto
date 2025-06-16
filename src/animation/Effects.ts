@@ -1,86 +1,85 @@
+import { b2Vec2, b2Body, b2BodyDef, b2BodyType } from "@box2d/core";
+import * as Utils from "@/system/Utils";
+import { AssetManager } from "@/system/AssetManager";
+import { Physics } from "@/system/Physics";
+import { Game } from "../Game";
+import { Worm } from "./animation/Worm";
+import { ParticleEffect } from "@/animation/ParticleEffect";
+
 /**
- *  Effects.js
- *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
+ * Effects namespace/module
+ * Handles explosion logic, force application, and particle effects
  */
-///<reference path="../system/Utils.ts"/>
-///<reference path="../system/AssetManager.ts"/>
-///<reference path="../system/Physics.ts"/>
-///<reference path="../system/Physics.ts"/>
-///<reference path="../Game.ts"/>
-///<reference path="../main.ts.old"/>
-///<reference path="Sprite.ts"/>
+export const Effects = {
+    /**
+     * Creates an explosion effect and applies physics damage
+     */
+    explosion(
+        epicenter: b2Vec2,
+        explosionRadius: number,
+        effectedRadius: number,
+        explosiveForce: number,
+        maxDamage: number,
+        entityThatCausedExplosion: any = null,
+        soundEffectToPlay: any = null,
+        particleEffectType: typeof ParticleEffect = ParticleEffect
+    ): ParticleEffect {
+        // Default sound
+        if (!soundEffectToPlay) {
+            soundEffectToPlay = AssetManager.getSound(`explosion${Utils.random(1, 3)}`);
+        }
 
-module Effects
-{
+        const posX = Physics.metersToPixels(Math.floor(epicenter.x));
+        const posY = Physics.metersToPixels(Math.floor(epicenter.y));
 
-    export function explosion(epicenter,
-        explosionRadius,
-        effectedRadius,
-        explosiveForce, 
-        maxDamage, 
-        entityThatCausedExplosion = null,
-        soundEffectToPlay = AssetManager.getSound("explosion" + Utilies.random(1, 3)),
-        particleEffectType = ParticleEffect,
-       )
-    {
-        var posX = Physics.metersToPixels(Math.floor(epicenter.x));
-        var posY = Physics.metersToPixels(Math.floor(epicenter.y));
+        GameInstance.terrain.addToDeformBatch(posX, posY, explosionRadius);
 
-        GameInstance.terrain.addToDeformBatch(posX,posY,explosionRadius);
+        // Apply force and damage to nearby bodies
+        Physics.applyToNearByObjects(epicenter, effectedRadius, (fixture, epicenter) => {
+            try {
+                const body = fixture.GetBody();
 
-        Physics.applyToNearByObjects(
-            epicenter,
-            effectedRadius,
-            function (fixture, epicenter) =>
-            {
-                // Applys force to all the bodies in the radius
-                if (fixture.GetBody().GetType() != b2Body.b2_staticBody && fixture.GetBody().GetUserData() instanceof Worm)
-                {
-                    var direction = fixture.GetBody().GetPosition().Copy();
-                    direction.x = Math.floor(direction.x);
-                    direction.y = Math.floor(direction.y);
+                // Skip static bodies
+                //if (body.GetType() === b2Body.b2_staticBody) return;
+                if (body.GetType() === b2BodyType.b2_staticBody) return;
+
+                const userData = body.GetUserData();
+                if (!userData) return;
+
+                // Apply force only to worms
+                if (userData instanceof Worm) {
+                    const direction = body.GetPosition().Copy();
                     direction.Subtract(epicenter);
-                    var forceVec = direction.Copy();
+                    const forceVec = direction.Copy();
+                    const distanceFromEpicenter = Math.max(0, (effectedRadius - direction.Length()) / effectedRadius);
 
-                    var diff = effectedRadius - direction.Length();
-                    
-                    if (diff < 0)
-                    {
-                        diff = 0;
-                    }
-
-                    var distanceFromEpicenter = diff / effectedRadius;
-                    fixture.GetBody().GetUserData().hit(maxDamage * distanceFromEpicenter,entityThatCausedExplosion)
+                    fixture.GetBody().GetUserData().hit(maxDamage * distanceFromEpicenter, entityThatCausedExplosion);
 
                     forceVec.Normalize();
-                    forceVec.Multiply(explosiveForce*distanceFromEpicenter);
+                    forceVec.Multiply(explosiveForce * distanceFromEpicenter);
 
-                    //Quick hack so grave stones are not checked by explosions
-                    if (fixture.GetBody().GetUserData().isDead == true)
-                    {
+                    // Reduce vertical force for dead worms
+                    if (userData.isDead) {
                         forceVec.x = 0;
                         forceVec.y /= 10;
                     }
-                       
-                    fixture.GetBody().ApplyImpulse(forceVec, fixture.GetBody().GetPosition());
 
+                    body.ApplyImpulse(forceVec, body.GetPosition());
                 }
+            } catch (e) {
+                console.warn("Error in explosion physics", e);
             }
-         );
-        var particleAnimation = new particleEffectType(posX, posY);
+        });
+
+        // Play sound
+        if (soundEffectToPlay) {
+            soundEffectToPlay.play();
+        }
+
+        // Create particle animation
+        const particleAnimation = new particleEffectType(posX, posY);
         GameInstance.particleEffectMgmt.add(particleAnimation);
 
-        if(soundEffectToPlay != null)
-        soundEffectToPlay.play();
-        
-        return particleAnimation; 
+        return particleAnimation;
     }
-
-
-
-
-
-}
+};

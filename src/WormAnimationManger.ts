@@ -6,15 +6,15 @@
  */
 import { Graphics } from "./system/Graphics";
 import { AssetManager } from "./system/AssetManager"
-import { } from "./system/Physics";
-import { } from "./animation/Sprite";
-import { } from "./weapons/Drill";
-import { } from "./Team";
-import { } from "./system/Utilies";
-import { } from "./system/NameGenerator";
-import { } from "./system/Timer";
-import { } from //"Main"
-import { } from "./Worm";
+import { Physics } from "./system/Physics";
+import { Sprites } from "./animation/SpriteDefinitions";
+import { Drill } from "./weapons/Drill";
+import { Team } from "./Team";
+import { Utils } from "./system/Utils";
+import { NameGenerator } from "./system/NameGenerator";
+import { Timer } from "./system/Timer";
+//import { } from //"Main"
+import { Worm } from "./Worm";
 
 export class WormAnimationManger
 {

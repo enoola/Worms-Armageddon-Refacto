@@ -1,61 +1,63 @@
-"use strict";
+import { Sprite } from "@/animation/Sprite";
+import { b2Vec2 } from "@box2d/core";
+import { Sprites } from "@/animation/SpriteDefinitions";
+import { Particle } from "@/animation/Particle";
+import { Utils } from "@/system/Utils";
 /**
- * ParticleSystem.js
- * Manages all the different sprites that make up the explosion effect
+ * ParticleEffect class
  *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
+ * Creates and manages visual particle effects like explosions and animated sprites
  */
-///<reference path="Sprite.ts"/>
-///<reference path="SpriteDefinitions.ts"/>
-///<reference path="Particle.ts"/>
-///<reference path="../system/AssetManager.ts"/>
-///<reference path="../system/Utils.ts"/>
-///<reference path="../system/Timer.ts" />
-///<reference path="../Settings.ts" />
-class ParticleEffect {
-    constructor(x, y) {
+export class ParticleEffect {
+    constructor(gameInstance, x, y) {
+        this.finished = false;
+        this.onFinished = null;
+        this.gameInstance = gameInstance;
         this.x = x;
         this.y = y;
         this.eclipse = new Sprite(Sprites.particleEffects.eclipse, true);
-        this.cirlce = new Sprite(Sprites.particleEffects.cirlce1, true);
+        this.circle = new Sprite(Sprites.particleEffects.cirlce1, true);
         this.word = new Sprite(Sprites.particleEffects.wordBiff, true);
-        this.center = new b2Vec2(this.eclipse.getImage().width / 2, this.eclipse.getFrameHeight() / 2);
-        this.finished = false;
+        const image = this.eclipse.getImage();
+        this.center = new b2Vec2(image.width / 2, this.eclipse.getFrameHeight() / 2);
         this.particles = [];
-        for (var p = 9; p >= 0; p--) {
-            this.particles.push(new Particle(new b2Vec2(x + this.center.x, y + this.center.y), new b2Vec2(Utilies.random(-300, 300), Utilies.random(-500, 0))));
+        // Create particles around the effect center
+        for (let p = 9; p >= 0; p--) {
+            const position = new b2Vec2(x + this.center.x, y + this.center.y);
+            const velocity = new b2Vec2(Utils.random(-300, 300), Utils.random(-500, 0));
+            this.particles.push(new Particle(position, velocity));
         }
     }
     draw(ctx) {
         ctx.save();
-        //Center it on the position instead of from the left top hand conor
+        // Center on effect origin
         ctx.translate(-this.eclipse.getImage().width / 2, -this.eclipse.getFrameHeight() / 2);
-        for (var p = this.particles.length - 1; p >= 0; p--) {
-            this.particles[p].draw(ctx);
+        // Draw particles
+        for (const particle of this.particles) {
+            particle.draw(ctx);
         }
-        this.cirlce.drawOnCenter(ctx, this.x, this.y, this.eclipse);
-        //hack, to do with the sprite draw() method not using the isfinished var, fix later
-        if (this.eclipse.finished == false) {
+        // Draw animated effects
+        this.circle.drawOnCenter(ctx, this.x, this.y, this.eclipse);
+        this.word.drawOnCenter(ctx, this.x, this.y, this.eclipse);
+        // Draw base sprite if not finished
+        if (!this.eclipse.finished) {
             this.eclipse.draw(ctx, this.x, this.y);
         }
-        this.word.drawOnCenter(ctx, this.x, this.y, this.eclipse);
         ctx.restore();
     }
     update() {
+        var _a;
         this.eclipse.update();
-        this.cirlce.update();
+        this.circle.update();
         this.word.update();
-        for (var p = this.particles.length - 1; p >= 0; p--) {
-            this.particles[p].update();
+        // Update all particles
+        for (const particle of this.particles) {
+            particle.update();
         }
-        //Particles have the longest animation so once they are finished we can make the effect for deletion
-        this.finished = this.particles[0].finished;
-        if (this.finished) {
-            if (this.onFinished) {
-                this.onFinished();
-            }
+        // Mark effect as finished when first particle finishes
+        this.finished = ((_a = this.particles[0]) === null || _a === void 0 ? void 0 : _a.finished) || true;
+        if (this.finished && this.onFinished) {
+            this.onFinished();
         }
     }
     onAnimationFinish(func) {

@@ -1,63 +1,103 @@
-import { Settings } from "../Settings.ts"
-//import { SpriteDefinitions } from "../animation/SpriteDefinitions.ts"
-import { AssetManager } from "../system/AssetManager.ts"
-import { ForceIndicator } from "ForceIndicator.ts"
+import { Settings } from "@/Settings";
+import { Worm } from "@/Worm";
+import { SpriteDefinition } from "@/animation/SpriteDefinitions";
+import { AssetManager } from "@/system/AssetManager";
+import { ForceIndicator } from "@/physics/ForceIndicator";
+import { Logger } from "@/utils/logger";
 
-class BaseWeapon
-{
-    ammo;
-    name;
-    iconImage;
-    isActive;
-    worm: Worm;
-    takeOutAnimations: SpriteDefinition;
-    takeAimAnimations: SpriteDefinition;
+/**
+ * BaseWeapon class
+ * 
+ * Base class for all weapons in the game
+ */
+export class BaseWeapon {
+    ammo!: number;
+    name!: string;
+    iconImage!: HTMLImageElement;
+    isActive = false;
+    worm!: Worm;
+    takeOutAnimations!: SpriteDefinition;
+    takeAimAnimations!: SpriteDefinition;
     forceIndicator: ForceIndicator;
 
-    requiresAiming: bool;
+    requiresAiming = true;
 
-    constructor(name: string, ammo: number, iconSprite, takeOutAnimation: SpriteDefinition, takeAimAnimation: SpriteDefinition)
-    {
+    constructor(
+        name: string,
+        ammo: number,
+        iconSprite: SpriteDefinition,
+        takeOutAnimation: SpriteDefinition,
+        takeAimAnimation: SpriteDefinition
+    ) {
         this.name = name;
         this.ammo = ammo;
-
         this.takeOutAnimations = takeOutAnimation;
         this.takeAimAnimations = takeAimAnimation;
-        //Setup the icon used in the weapon menu
+
+        // Load weapon icon
         this.iconImage = AssetManager.getImage(iconSprite.imageName);
 
-        this.requiresAiming = true;
-
-        this.setIsActive(false);
-
+        // Initialize force indicator
         this.forceIndicator = new ForceIndicator(0);
     }
 
-    getForceIndicator()
-    {
+    /**
+     * Returns the current force indicator
+     */
+    getForceIndicator(): ForceIndicator {
         return this.forceIndicator;
     }
 
-    getIsActive() { return this.isActive; }
-    setIsActive(val) { this.isActive = val; }
-
-    deactivate()
-    {
-    
+    /**
+     * Get whether the weapon is active
+     */
+    getIsActive(): boolean {
+        return this.isActive;
     }
 
-    activate(worm)
-    {
-
-        this.setIsActive(true);
-        this.ammo--;
-        this.worm = worm;
-
-        Logger.debug(this.name + " was activated ");
-
+    /**
+     * Set whether the weapon is active
+     */
+    setIsActive(val: boolean): void {
+        this.isActive = val;
     }
 
-    update() { }
-    draw(ctx) { }
+    /**
+     * Deactivates the weapon
+     */
+    deactivate(): void {
+        this.setIsActive(false);
+        Logger.debug(`${this.name} was deactivated`);
+    }
+
+    /**
+     * Activates the weapon on a worm
+     */
+    activate(worm: Worm): void {
+        if (this.ammo > 0 && !this.getIsActive()) {
+            this.setIsActive(true);
+            this.ammo--;
+            this.worm = worm;
+
+            if (Settings.DEVELOPMENT_MODE || Settings.LOG) {
+                Logger.debug(`${this.name} was activated`);
+            }
+        } else {
+            AssetManager.getSound("cantclickhere").play();
+        }
+    }
+
+    /**
+     * Updates the weapon's logic
+     */
+    update(): void {
+        // To be overridden by subclasses
+    }
+
+    /**
+     * Draws the weapon
+     */
+    draw(ctx: CanvasRenderingContext2D): void {
+        // To be overridden by subclasses
+    }
 }
-

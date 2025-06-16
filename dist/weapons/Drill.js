@@ -1,34 +1,28 @@
-/**
- * Drill.js
- * This class manages the Drill tool which the worm
- * can use to drill down into the terrain and also hurt other worms.
- *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
- */
-import { Physics } from "../system/Physics";
-import { Timer } from "../system/Timer";
+import { Physics } from "@/system/Physics";
 import { BaseWeapon } from "./BaseWeapon";
-class Drill extends BaseWeapon {
-    constructor(ammo, name = "Drill", icon = Sprites.weaponIcons.drill, takeOutAnimation = Sprites.worms.takeOutDrill, actionAnimation = Sprites.worms.drilling) {
-        super("Drill", // Weapon name
-        ammo, // ammo
-        icon, //Icon for menu
-        takeOutAnimation, //animation fro worm taking out drill
-        actionAnimation //animation fro worm taking out drill
-        );
-        this.worm = null;
-        this.timeBetweenExploisionsTimer = new Timer(450);
+import { Sprites } from "@/animation/SpriteDefinitions";
+import { AssetManager } from "@/system/AssetManager";
+import { Timer } from "@/system/Timer";
+import { GameInstance } from "@/GameInstance";
+import { Logger } from "@/utils/logger";
+/**
+ * Drill class
+ *
+ * A weapon that allows worms to drill through terrain and damage nearby worms.
+ */
+export class Drill extends BaseWeapon {
+    constructor(ammo) {
+        super("Drill", ammo, Sprites.weaponIcons.drill, Sprites.worms.takeOutDrill, Sprites.worms.drilling);
+        this.timeBetweenExplosionsTimer = new Timer(450);
         this.useDurationTimer = new Timer(5200);
-        // No requirement for crosshairs aiming
+        // Disable aiming since drill is automatic
         this.requiresAiming = false;
     }
     activate(worm) {
         if (this.ammo > 0) {
             super.activate(worm);
             this.useDurationTimer.reset();
-            this.timeBetweenExploisionsTimer.reset();
+            this.timeBetweenExplosionsTimer.reset();
             this.worm.setSpriteDef(this.takeAimAnimations, true, false);
             return true;
         }
@@ -38,22 +32,23 @@ class Drill extends BaseWeapon {
     }
     deactivate() {
         this.setIsActive(false);
-        Logger.debug(" deactivedate ");
-        this.worm.setSpriteDef(this.takeAimAnimations, false); //unlocks sprite
-        //this.worm.setSpriteDef(Sprites.worms.idle1);
+        Logger.debug("Drill deactived");
+        this.worm.setSpriteDef(this.takeAimAnimations, false); // Unlock sprite
     }
     update() {
         if (this.getIsActive()) {
-            var weaponUseDuration = this.useDurationTimer.hasTimePeriodPassed();
+            const weaponUseDuration = this.useDurationTimer.hasTimePeriodPassed();
             if (weaponUseDuration) {
                 this.deactivate();
             }
             AssetManager.getSound("drill").play();
-            if (this.timeBetweenExploisionsTimer.hasTimePeriodPassed()) {
-                GameInstance.terrain.addToDeformBatch(Physics.metersToPixels(this.worm.body.GetPosition().x), Physics.metersToPixels(this.worm.body.GetPosition().y), 25);
+            if (this.timeBetweenExplosionsTimer.hasTimePeriodPassed()) {
+                const wormPos = this.worm.body.GetPosition();
+                const pixelPos = Physics.vectorMetersToPixels(wormPos);
+                GameInstance.terrain.addToDeformBatch(pixelPos.x, pixelPos.y, 25);
             }
             this.useDurationTimer.update();
-            this.timeBetweenExploisionsTimer.update();
+            this.timeBetweenExplosionsTimer.update();
         }
     }
 }

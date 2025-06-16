@@ -5,19 +5,22 @@
  *  author:  Ciar�n McCann
  *  url: http://www.ciaranmccann.me/
  */
-///<reference path="../system/Physics.ts"/>
-///<reference path="../system/Utils.ts" />
-///<reference path="Terrain.ts" />
+//<reference path="../system/Physics.ts"/>
+//<reference path="../system/Utils.ts" />
+//<reference path="Terrain.ts" />
 
-class TerrainBoundary
+import { Physics } from "@/system/Physics";
+import { b2Body, b2BodyType, b2FixtureDef, b2PolygonShape } from "@box2d/core";
+
+export class TerrainBoundary
 {
     worldWidth;
     worldHeight;
 
-    outerWorldWidth;
-    outerWorldHeight;
+    outerWorldWidth: number = 0;
+    outerWorldHeight: number = 0;
     
-    constructor (worldWidth,worldHeight)
+    constructor (worldWidth: number,worldHeight:number)
     {
 
         this.worldWidth = worldWidth; 
@@ -27,18 +30,20 @@ class TerrainBoundary
         var sidesPositionX =  Physics.pixelToMeters(worldWidth / 5);
 
         //Bottom
-        var fixDef = new b2FixtureDef;
-        fixDef.density = 1.0;
-        fixDef.friction = 1.0;
-        fixDef.restitution = 0.0;
-        fixDef.shape = new b2PolygonShape;
-        fixDef.shape.SetAsBox( Physics.pixelToMeters(worldWidth)+sidesPositionX*2, 0.5);
+        var fixDef: b2FixtureDef = {
+            density: 1.0,
+            friction: 1.0,
+            restitution: 0.0,
+            shape: (new b2PolygonShape()).SetAsBox(Physics.pixelToMeters(worldWidth) + sidesPositionX * 2, 0.5),
+        }
+        //fixDef.shape= new b2PolygonShape();
+        //fixDef.shape.SetAsBox(Physics.pixelToMeters(worldWidth) + sidesPositionX * 2, 0.5);
 
-       var bodyDef = new b2BodyDef;
-       bodyDef.type = b2Body.b2_staticBody;             
-       bodyDef.position.x = -sidesPositionX;
-       bodyDef.position.y = Physics.pixelToMeters(worldHeight);
-
+       var bodyDef: b2BodyDef = {
+            type: b2BodyType.b2_dynamicBody,            
+            position.x: -sidesPositionX,
+            position.y: Physics.pixelToMeters(worldHeight),
+       }
        var bottom = Physics.world.CreateBody(bodyDef).CreateFixture(fixDef).GetBody();
        bottom.SetUserData(this);
 

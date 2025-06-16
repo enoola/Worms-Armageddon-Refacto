@@ -1,7 +1,8 @@
 import { Utils } from "../system/Utils";
 import { AssetManager } from "../system/AssetManager";
 // Map Class - Represents an individual map
-export class Map {
+//rename to WMap
+export class WMap {
     constructor(mapDef) {
         this.currentSpawn = 0;
         this.mapDef = mapDef;
@@ -10,7 +11,8 @@ export class Map {
         var aSpawnPoint;
         aSpawnPoint = Utils.pickUnique(this.mapDef.spawnPionts, "spawnPoints");
         if (!aSpawnPoint)
-            return (aSpawnPoint);
+            aSpawnPoint = { x: 42, y: 42 };
+        return (aSpawnPoint);
     }
     getBackgroundCss() {
         return this.mapDef.backgroundGraidentCss;
@@ -22,6 +24,7 @@ export class Map {
         return this.mapDef.name;
     }
 }
+;
 // Predefined Maps
 export var Maps;
 (function (Maps) {

@@ -1,69 +1,87 @@
-///<reference path="BaseWeapon.ts"/>
-///<reference path="ThrowableWeapon.ts"/>
+import { b2Vec2, b2Body } from "@box2d/core";
+import { ThrowableWeapon } from "./ThrowableWeapon";
+import { Sprites } from "@/animation/SpriteDefinitions";
+import { AssetManager } from "@/system/AssetManager";
+import { Physics } from "@/system/Physics";
+import { Utilies } from "@/system/Utilies";
+import { Worm } from "@/animation/Worm";
+import { GameInstance } from "@/GameInstance";
+import { Logger } from "@/utils/logger";
 
-class Dynamite extends ThrowableWeapon
-{
+/**
+ * Dynamite class
+ * 
+ * A weapon that explodes after a delay, causing terrain deformation and damage.
+ */
+export class Dynamite extends ThrowableWeapon {
+    explosionRadius: number;
+    effectedRadius: number;
+    explosiveForce: number;
 
-    constructor (ammo)
-    {
-        //Modify the takeout animation, to be used as its idel animation or aiming animations
-        // though you don't aim dynamaie. It just happens to be easy subclass of Throwable
-        var modifedSpriteDef = Utilies.copy( new Object(), Sprites.worms.takeOutDynamite);
-        modifedSpriteDef.frameY = modifedSpriteDef.frameCount-1;
+    constructor(ammo: number) {
+        // Clone the takeOutDynamite animation and reverse it
+        const modifiedSpriteDef = { ...Sprites.worms.takeOutDynamite };
+        modifiedSpriteDef.frameY = modifiedSpriteDef.frameCount ? modifiedSpriteDef.frameCount - 1 : 0;
 
         super(
-            "Dynamite", // Weapon name
+            "Dynamite",
             ammo,
-            Sprites.weaponIcons.dynamite, //Icon for menu
-            Sprites.weapons.dynamite, //Inital weapon object state
+            Sprites.weaponIcons.dynamite,
+            Sprites.weapons.dynamite,
             Sprites.worms.takeOutDynamite,
-            modifedSpriteDef
+            modifiedSpriteDef
         );
 
         this.explosionRadius = 100;
-
-        // Force/worm damge radius
         this.effectedRadius = Physics.pixelToMeters(this.explosionRadius * 1.8);
-
-        // force scaler
         this.explosiveForce = 95;
-
-        // No requirement for crosshairs aiming
         this.requiresAiming = false;
-
     }
 
-    playWormVoice()
-    {
+    /**
+     * Plays worm voice sound before throwing
+     */
+    playWormVoice(): void {
         Utilies.pickRandomSound(["laugh"]).play();
     }
 
+    /**
+     * Sets up physics body at worm's position with no initial force
+     */
+    setupDirectionAndForce(worm: Worm): void {
+        const initialPosition = worm.body.GetPosition();
+        this.setupPhysicsBodies(initialPosition, new b2Vec2(0, 0));
 
-    //Gets the direction of aim from the target and inital velocity
-    // The creates the box2d physics body at that pos with that inital v
-    setupDirectionAndForce(worm: Worm)
-    {
-        //super activate calls this so I can play sound here
-
-        var initalPosition = worm.body.GetPosition();
-        //initalPosition.Multiply(1.5);
-        this.setupPhysicsBodies(initalPosition, new b2Vec2(0, 0));
-
-        // I don't want the dynmatic to roll
-        this.body.SetFixedRotation(true);
+        // Prevent rotation
+        this.body?.SetFixedRotation(true);
     }
 
+    /**
+     * Updates the dynamite's state
+     */
+    update(): void {
+        if (this.getIsActive()) {
+            this.sprite?.update();
+            AssetManager.getSound("fuse").play();
 
-    update()
-    {
-        if (this.getIsActive())
-        {
-            this.sprite.update();
-            AssetManager.getSound("fuse").play(1);
             super.update();
         }
-
     }
-
+ 
+    onExplosion(): void {
+        const position = this.body.GetPosition();
+        const pixelPos = Physics.vectorMetersToPixels(position);
+        
+        Effects.explosion(
+            position,
+            this.explosionRadius,
+            this.effectedRadius,
+            this.explosiveForce,
+            this.maxDamage,
+            this.worm
+        );
+    
+        GameInstance.particleEffectMgmt.add(new ParticleEffect(pixelPos.x, pixelPos.y));
+        this.setIsActive(false);
+    }
 }
-

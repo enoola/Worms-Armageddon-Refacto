@@ -14,7 +14,7 @@ import { Physics } from './system/Physics';
 import { TwinStickControls } from './system/GamePad';
 // Environment
 import { Terrain } from './environment/Terrain';
-import { Maps } from './environment/Maps';
+import { WMap, Maps } from './environment/Maps';
 import { Player } from './Player';
 // GUI
 import { WeaponsMenu } from './gui/WeaponsMenu';
@@ -37,6 +37,8 @@ import { Settings } from './Settings';
 import { TouchUI } from './system/touchui';
 export class Game {
     constructor() {
+        this.weaponMenu = null;
+        this.winner = null;
         Graphics.init();
         this.gameType = Game.types.LOCAL_GAME;
         //Create action canvas
@@ -269,7 +271,8 @@ Game.types = {
     ONLINE_GAME: 0,
     LOCAL_GAME: 1
 };
-Game.map = new Map(Maps.castle);
+//    static map: Map = new Map(Maps.castle);
+Game.map = new WMap(Maps.castle);
 class GameDataPacket {
     constructor(game, physics = Physics) {
         this.players = [];

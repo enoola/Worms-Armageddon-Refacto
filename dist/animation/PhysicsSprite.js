@@ -1,34 +1,26 @@
-"use strict";
+import { b2Vec2 } from "@box2d/core";
+import { Sprite } from "@/animation/Sprite";
 /**
- * PhysicsSprite.js
- * This is handies sprite that also need to animate interm of movement and physics
+ * PhysicsSprite
  *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
+ * A sprite that also moves based on physics (velocity, acceleration)
  */
-///<reference path="Sprite.ts"/>
-///<reference path="SpriteDefinitions.ts"/>
-///<reference path="../system/AssetManager.ts"/>
-///<reference path="../system/Utils.ts"/>
-///<reference path="../system/Timer.ts" />
-///<reference path="../Settings.ts" />
-///<reference path="../system/Physics.ts" />
-class PhysicsSprite extends Sprite {
-    constructor(initalPos, initalVelocity, spriteDef) {
+export class PhysicsSprite extends Sprite {
+    constructor(initialPos, initialVelocity, spriteDef) {
         super(spriteDef);
-        this.position = initalPos;
-        this.velocity = initalVelocity;
+        this.position = initialPos.Clone();
+        this.velocity = initialVelocity.Clone();
+        this.acc = new b2Vec2(0, 0);
     }
     draw(ctx, x = this.position.x, y = this.position.y) {
         super.draw(ctx, x, y);
     }
     physics() {
-        var t = 0.016;
-        var g = new b2Vec2(0, 9.81);
-        var at = g.Copy();
+        const t = 0.016; // Fixed time step (approx 60fps)
+        const g = new b2Vec2(0, 9.81); // Gravity
+        const at = g.Clone();
         this.velocity.Add(at);
-        var vt = this.velocity.Copy();
+        const vt = this.velocity.Clone();
         vt.Multiply(t);
         this.position.Add(vt);
     }

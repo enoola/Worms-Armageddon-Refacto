@@ -1,48 +1,60 @@
-"use strict";
+import { b2Vec2 } from "@box2d/core";
+import { PhysicsSprite } from "@/animation/PhysicsSprite";
+import { Sprites } from "@/animation/SpriteDefinitions";
+import { Utils } from "@/system/Utils";
+import { GameInstance } from "@/GameInstance";
 /**
- * Particle.js
- * Flames and shit...
+ * Particle class
  *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
+ * A small animated object affected by physics (e.g., flames, smoke)
  */
-///<reference path="Sprite.ts"/>
-///<reference path="PhysicsSprite.ts"/>
-///<reference path="SpriteDefinitions.ts"/>
-///<reference path="../system/AssetManager.ts"/>
-///<reference path="../system/Utils.ts"/>
-///<reference path="../system/Timer.ts" />
-///<reference path="../Settings.ts" />
-///<reference path="../system/Physics.ts" />
-class Particle extends PhysicsSprite {
-    constructor(initalPos, initalVelocity, spriteDef = Sprites.particleEffects.flame1) {
-        super(initalPos, initalVelocity, spriteDef);
+export class Particle extends PhysicsSprite {
+    constructor(initialPos, initialVelocity, spriteDef = Sprites.particleEffects.flame1) {
+        super(initialPos, initialVelocity, spriteDef);
         this.setNoLoop(true);
     }
 }
-class Cloud extends PhysicsSprite {
+/**
+ * Cloud class
+ *
+ * A special particle that floats across the sky and loops
+ */
+export class Cloud extends PhysicsSprite {
     constructor() {
-        var initalPos = new b2Vec2(Utilies.random(0, GameInstance.camera.levelWidth), Utilies.random(GameInstance.terrain.Offset.y - 900, GameInstance.terrain.Offset.y - 220));
-        var initalVelocity = new b2Vec2(Utilies.random(3, 7) * 0.4, 0);
-        var spriteDef = Utilies.pickRandom([Sprites.particleEffects.cloudl, Sprites.particleEffects.cloudm, Sprites.particleEffects.clouds]);
-        super(initalPos, initalVelocity, spriteDef);
+        const initialPos = new b2Vec2(Utils.random(0, GameInstance.getInstance().camera.levelWidth), Utils.random(GameInstance.getInstance().terrain.Offset.y - 900, GameInstance.getInstance().terrain.Offset.y - 220));
+        const initialVelocity = new b2Vec2(Utils.random(3, 7) * 0.4, 0);
+        const spriteDef = Utils.pickRandom([
+            Sprites.particleEffects.cloudl,
+            Sprites.particleEffects.cloudm,
+            Sprites.particleEffects.clouds
+        ]);
+        super(initialPos, initialVelocity, spriteDef);
     }
-    physics() { } //just to override the physics from super
+    /**
+     * Override physics method to disable physics for clouds
+     */
+    physics() {
+        // intentionally empty - clouds don't use physics
+    }
+    /**
+     * Update cloud position with wrap-around behavior
+     */
     update() {
-        // Once the sprite animation has reached the end, then change the framIncremter so it goes
-        // back down though the sprites again and then back up etc.
+        // Handle animation loop
         if (this.getCurrentFrame() >= this.getTotalFrames() - 1) {
             this.setCurrentFrame(this.getTotalFrames() - 1);
-            this.frameIncremeter *= -1;
+            this.frameIncrementer *= -1;
         }
         else if (this.getCurrentFrame() <= 0) {
             this.setCurrentFrame(0);
-            this.frameIncremeter *= -1;
+            this.frameIncrementer *= -1;
         }
+        // Update animation
         super.update();
+        // Move cloud based on velocity
         this.position.x += this.velocity.x;
-        if (this.position.x > GameInstance.camera.levelWidth) {
+        // Wrap around screen
+        if (this.position.x > GameInstance.getInstance().camera.levelWidth) {
             this.position.x = 0;
         }
     }

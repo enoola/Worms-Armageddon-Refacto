@@ -7,9 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { getAudioContext, Sound } from "../audio/Sound";
+import { Sound } from "../audio/Sound";
 import { Settings } from "../Settings";
 import { Maps } from "../environment/Maps";
+import { BufferLoader } from "@/audio/BufferLoader";
 export const AssetManager = {
     images: {},
     sounds: {},
@@ -107,11 +108,9 @@ export const AssetManager = {
             try {
                 if (Settings.BUILD_MANIFEST_FILE)
                     throw new Error("Using manifest");
-                ctx: AudioContext;
                 // Try Web Audio API first
-                audioCtx = getAudioContext();
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (!Sound.context) {
+                    Sound.context = new (window.AudioContext || window.webkitAudioContext)();
                 }
                 const bufferLoader = new BufferLoader(Sound.context, sources, (bufferList) => {
                     for (const buffer of bufferList) {

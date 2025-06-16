@@ -16,7 +16,7 @@ import { Timer } from './system/Timer';
 
 // Environment
 import { Terrain } from './environment/Terrain';
-import { Maps } from './environment/Maps';
+import { WMap, Maps, MapDefinition } from './environment/Maps';
 
 // Game Entities
 import { Worm } from './Worm';
@@ -62,12 +62,13 @@ export class Game
     actionCanvas;
     actionCanvasContext;
 
-    terrain: Terrain;
+    //terrain: Terrain | null = null;
+    terrain!: Terrain;
     players: Player[];
 
     gameType: number;
 
-    weaponMenu: WeaponsMenu;
+    weaponMenu: WeaponsMenu | null = null;
     healthMenu: HealthMenu;
     gameTimer: CountDownTimer;
 
@@ -84,10 +85,10 @@ export class Game
 
     lobby: Lobby;
 
-    winner: Player;
+    winner: Player|null = null;
  
 //    static map: Map = new Map(Maps.castle);
-    static map: Map = Maps.castle;
+    static map: WMap = new WMap(Maps.castle);
 
     camera: Camera;
 

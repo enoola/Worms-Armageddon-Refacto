@@ -1,64 +1,76 @@
-/**
- * @namespace SoundFallback
- * @description Sound Fallback extracted from Sound.ts & refactored
- * @author qwenola
- * @version 1.0.0
- * @date 20250613
- */
-
-import { Logger } from "../utils/logger";
-import { AssetManager } from "../system/AssetManager";
+import { Settings } from "@/Settings";
+import AssetManager from "@/system/AssetManager";
+import { Logger } from "@/utils/logger";
 import { Sound } from "./Sound";
-import { Settings } from "../Settings";
 
+/**
+ * SoundFallback class (HTML Audio Tag)
+ */
 export class SoundFallback extends Sound {
-    private audio: HTMLAudioElement;
+    audio: HTMLAudioElement;
 
-    constructor(soundSrc: string) {
-        super(null); // No buffer needed
-        this.audio = document.createElement("audio");
+    constructor(private soundSrc: string) {
+        super(null);
+        this.audio = new Audio();
         this.load(soundSrc);
     }
 
-    private load(soundSrc: string): void {
+    /**
+     * Load sound from URL
+     */
+    load(soundSrc: string): void {
         this.audio.src = soundSrc;
-        this.audio.preload = "auto";
+        this.audio.volume = 1;
 
-        this.audio.addEventListener("loadeddata", () => {
+        this.audio.addEventListener("canplay", () => {
             AssetManager.numAssetsLoaded++;
-            Logger.log("Sound loaded: " + this.audio.src);
+            Logger.log(`Sound loaded: ${this.soundSrc}`);
         });
 
         this.audio.addEventListener("error", () => {
-            Logger.error("Sound failed to load: " + this.audio.src);
+            Logger.error(`Sound failed to load: ${this.soundSrc}`);
         });
-
-        document.body.appendChild(this.audio);
     }
 
-    override play(volume: number = 1, _time: number = 0, allowSoundOverlay: boolean = false): void {
+    /**
+     * Play using HTML Audio
+     */
+    override play(volume = 1, time = 0, allowSoundOverlap = false): void {
         if (!Settings.SOUND) {
             Logger.debug("Sounds are currently disabled");
             return;
         }
 
-        if (!this.playing || allowSoundOverlay) {
-            this.audio.volume = volume;
-            this.audio.currentTime = 0; // Restart playback
-            this.audio.play().catch(e => Logger.error("Audio play failed", e));
-            this.playing = true;
-        }
-    }
+        if (this.playing && !allowSoundOverlap) return;
 
-    override pause(): void {
-        if (Settings.SOUND) {
-            this.audio.pause();
-            this.playing = false;
-        }
-    }
-
-    override stop(): void {
-        this.pause();
+        this.audio.volume = volume;
         this.audio.currentTime = 0;
+
+        this.audio.play().catch(e => {
+            Logger.warn("HTML audio playback failed", e);
+        });
+
+        this.playing = true;
+
+        // Detect end of playback
+        this.audio.onended = () => {
+            this.playing = false;
+        };
+    }
+
+    /**
+     * Pause HTML audio
+     */
+    override pause(): void {
+        if (!Settings.SOUND) return;
+        this.audio.pause();
+        this.playing = false;
+    }
+
+    /**
+     * Check if sound is playing
+     */
+    override isPlaying(): boolean {
+        return !this.audio.paused && !this.audio.ended && this.audio.currentTime > 0;
     }
 }

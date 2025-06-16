@@ -3,11 +3,11 @@
  * The name generator gets a list of famous programmers from wikipeda and randomly assigns them to worms
  *
  *  License: Apache 2.0
- *  author:  Ciarán McCann
+ *  author:  Ciarï¿½n McCann
  *  url: http://www.ciaranmccann.me/
  */
-///<reference path="Utilies.ts" />
-
+///<reference path="Utils.ts" />
+import { Utils } from "./Utils"
 
 //TODO This is Kinda redundent
 
@@ -26,7 +26,8 @@ module NameGenerator
     // var nameDataSrc = "wikilocal.html";
 
 
-    export function init(callback)
+    //export function init(callback)
+    export function init()
     {
 
         //$.ajax({
@@ -55,7 +56,7 @@ module NameGenerator
     {
         if (randomNamesList.length == 0)
             return "Error with genertor";
-        return Utilies.pickUnqine(randomNamesList, "names");
+        return Utils.pickUnique(randomNamesList, "names");
     }
 
 }

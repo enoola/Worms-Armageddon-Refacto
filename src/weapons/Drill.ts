@@ -1,93 +1,71 @@
+import { b2Vec2 } from "@box2d/core";
+import { Physics } from "@/system/Physics";
+import { Utilies } from "@/system/Utilies";
+import { Worm } from "@/animation/Worm";
+import { BaseWeapon } from "./BaseWeapon";
+import { Sprites } from "@/animation/SpriteDefinitions";
+import { AssetManager } from "@/system/AssetManager";
+import { Timer } from "@/system/Timer";
+import { GameInstance } from "@/GameInstance";
+import { Logger } from "@/utils/logger";
+
 /**
- * Drill.js
- * This class manages the Drill tool which the worm
- * can use to drill down into the terrain and also hurt other worms.
- *
- *  License: Apache 2.0
- *  author:  Ciar�n McCann
- *  url: http://www.ciaranmccann.me/
+ * Drill class
+ * 
+ * A weapon that allows worms to drill through terrain and damage nearby worms.
  */
-
-
-import { Physics } from "../system/Physics"
-import { Utils} from "../system/Utils"
-import { Worm } from "../Worm" 
-import { Sprite } from "../animation/Sprite"
-import { Timer } from "../system/Timer"
-import { Game } from "../Game"
-import { BaseWeapon } from "./BaseWeapon"
-
-
-class Drill extends BaseWeapon
-{
-    private worm: Worm = null;
-    timeBetweenExploisionsTimer: Timer;
+export class Drill extends BaseWeapon {
+    worm!: Worm;
+    timeBetweenExplosionsTimer: Timer;
     useDurationTimer: Timer;
 
-    constructor(ammo, name = "Drill", icon = Sprites.weaponIcons.drill,takeOutAnimation = Sprites.worms.takeOutDrill, actionAnimation = Sprites.worms.drilling)
-    {
-        super(
-            "Drill", // Weapon name
-            ammo, // ammo
-            icon, //Icon for menu
-            takeOutAnimation, //animation fro worm taking out drill
-            actionAnimation //animation fro worm taking out drill
-        );
+    constructor(ammo: number) {
+        super("Drill", ammo, Sprites.weaponIcons.drill, Sprites.worms.takeOutDrill, Sprites.worms.drilling);
 
-        this.timeBetweenExploisionsTimer = new Timer(450);
+        this.timeBetweenExplosionsTimer = new Timer(450);
         this.useDurationTimer = new Timer(5200);
 
-        // No requirement for crosshairs aiming
+        // Disable aiming since drill is automatic
         this.requiresAiming = false;
     }
 
-
-    activate(worm: Worm)
-    {
-        if (this.ammo > 0)
-        {
+    activate(worm: Worm): boolean {
+        if (this.ammo > 0) {
             super.activate(worm);
             this.useDurationTimer.reset();
-            this.timeBetweenExploisionsTimer.reset();
-            this.worm.setSpriteDef(this.takeAimAnimations, true,false);
+            this.timeBetweenExplosionsTimer.reset();
+            this.worm.setSpriteDef(this.takeAimAnimations, true, false);
 
             return true;
-        } else
-        {
+        } else {
             return false;
         }
     }
 
-    deactivate()
-    {
+    deactivate(): void {
         this.setIsActive(false);
-        Logger.debug(" deactivedate ");
-        this.worm.setSpriteDef(this.takeAimAnimations, false); //unlocks sprite
-        //this.worm.setSpriteDef(Sprites.worms.idle1);
+        Logger.debug("Drill deactived");
+        this.worm.setSpriteDef(this.takeAimAnimations, false); // Unlock sprite
     }
 
-    update()
-    {
-        if (this.getIsActive())
-        {
-            var weaponUseDuration = this.useDurationTimer.hasTimePeriodPassed();
-            if (weaponUseDuration)
-            {
+    update(): void {
+        if (this.getIsActive()) {
+            const weaponUseDuration = this.useDurationTimer.hasTimePeriodPassed();
+
+            if (weaponUseDuration) {
                 this.deactivate();
             }
 
             AssetManager.getSound("drill").play();
 
-            if (this.timeBetweenExploisionsTimer.hasTimePeriodPassed())
-            {
-                GameInstance.terrain.addToDeformBatch(Physics.metersToPixels(this.worm.body.GetPosition().x), Physics.metersToPixels(this.worm.body.GetPosition().y), 25);
+            if (this.timeBetweenExplosionsTimer.hasTimePeriodPassed()) {
+                const wormPos = this.worm.body.GetPosition();
+                const pixelPos = Physics.vectorMetersToPixels(wormPos);
+                GameInstance.terrain.addToDeformBatch(pixelPos.x, pixelPos.y, 25);
             }
 
             this.useDurationTimer.update();
-            this.timeBetweenExploisionsTimer.update();
-
+            this.timeBetweenExplosionsTimer.update();
         }
-
     }
-
 }

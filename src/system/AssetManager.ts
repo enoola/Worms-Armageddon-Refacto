@@ -2,6 +2,7 @@ import { Sound } from "../audio/Sound";
 import { Settings } from "../Settings";
 import { Sprite } from "../animation/Sprite";
 import { Maps } from "../environment/Maps";
+import { BufferLoader } from "@/audio/BufferLoader";
 
 export const AssetManager = {
     images: {} as Record<string, HTMLImageElement>,

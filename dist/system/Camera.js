@@ -5,7 +5,7 @@
  * @version 1.0.0
  * @date 20250613
  */
-import { b2Vec2 } from "../types/box2d-imports";
+import { b2Vec2 } from "@box2d/core";
 //import type { b2Vec2 as b2Vec2Type } from '../types/box2d-types'; // Optional if you're using ambient declarations
 export class Camera {
     constructor(levelWidth, levelHeight, vpWidth, vpHeight) {
